@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function Navbar() {
   return (
     <nav className="bg-white shadow w-[100%]">
@@ -8,19 +10,33 @@ export default function Navbar() {
         {/* Navigation Links */}
         <ul className="flex gap-6 text-gray-700">
           <li>
-            <a href="#" className="hover:text-indigo-600 transition-colors">
+            <Link to="/" className="hover:text-indigo-600 transition-colors">
               Home
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="hover:text-indigo-600 transition-colors">
+            <Link
+              to="/my-forms"
+              className="hover:text-indigo-600 transition-colors"
+            >
               My Forms
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="hover:text-indigo-600 transition-colors">
+            <Link
+              to="/about"
+              className="hover:text-indigo-600 transition-colors"
+            >
               About
-            </a>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/login"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              Log Out
+            </Link>
           </li>
         </ul>
       </div>

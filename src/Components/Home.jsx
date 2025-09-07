@@ -1,6 +1,13 @@
 import { ChartBar, Edit3, Share2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate("/forms");
+  };
+
   return (
     <div>
       {/* Hero Section */}
@@ -13,7 +20,10 @@ export default function Home() {
           whether for surveys, feedback, or data collection.
         </p>
         <div className="flex space-x-4">
-          <button className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+          <button
+            onClick={handleGetStarted}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          >
             Get Started
           </button>
           <button className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
