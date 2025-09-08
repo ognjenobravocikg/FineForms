@@ -21,17 +21,25 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
 
-    @Column(nullable = false,
-            unique = true)
+    @Column(unique = true,
+            name = "email",
+            nullable = false )
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password",
+            nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private String fullName;
+    @Column(name = "first_name",
+            nullable = false)
+    private String firstName;
 
+    @Column(name = "last_name",
+            nullable = false)
+    private String lastName;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role",
+            nullable = false)
     private Role role;
 }
