@@ -59,7 +59,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/edit/{id}")
+    @PatchMapping("/edit/{id}")
     public ResponseEntity<?> editUser(
             @PathVariable Long id,
             @Valid @RequestBody EditRequestDTO editRequest) {
