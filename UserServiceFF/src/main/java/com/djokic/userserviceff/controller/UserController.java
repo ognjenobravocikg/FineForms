@@ -1,5 +1,6 @@
 package com.djokic.userserviceff.controller;
 
+import com.djokic.userserviceff.dto.EditRequestDTO;
 import com.djokic.userserviceff.dto.LoginRequestDTO;
 import com.djokic.userserviceff.dto.RegisterRequestDTO;
 import com.djokic.userserviceff.dto.UserDTO;
@@ -49,7 +50,6 @@ public class UserController {
         if (loggedInUser.isPresent()) {
             return ResponseEntity.ok(loggedInUser.get());
         } else {
-            // JSON odgovor za neuspešan login
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of(
                             "status", HttpStatus.UNAUTHORIZED.value(),
@@ -57,6 +57,18 @@ public class UserController {
                             "message", "Invalid email or password"
                     ));
         }
+    }
+
+    @PostMapping("/edit/{id}")
+    public ResponseEntity<?> editUser(
+            @PathVariable Long id,
+            @Valid @RequestBody EditRequestDTO editRequest) {
+
+        Optional<UserDTO> updatedUser = userService.updateUser(id, editRequest);
+
+        return updatedUser
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @GetMapping("/{id}/details")
@@ -70,6 +82,5 @@ public class UserController {
     @GetMapping("/")
     public ResponseEntity<List<UserDTO>> getAllUsers(){
         return ResponseEntity.ok(userService.getUsers());
-
     }
 }

@@ -1,5 +1,6 @@
 package com.djokic.userserviceff.service;
 
+import com.djokic.userserviceff.dto.EditRequestDTO;
 import com.djokic.userserviceff.dto.LoginRequestDTO;
 import com.djokic.userserviceff.dto.RegisterRequestDTO;
 import com.djokic.userserviceff.dto.UserDTO;
@@ -9,8 +10,6 @@ import com.djokic.userserviceff.mappers.UserMapper;
 import com.djokic.userserviceff.repository.UserRepository;
 import com.djokic.userserviceff.util.HmacSHA256;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -39,7 +38,7 @@ public class UserService {
         Assert.notNull(registerRequest.getEmail(), "Email must be provided !");
         Assert.notNull(registerRequest.getPassword(), "Password cannot be blank");
 
-        registerRequest.setEmail(registerRequest.getEmail().toLowerCase()); // Transform all letters from email to lowercase
+        registerRequest.setEmail(registerRequest.getEmail().toLowerCase());
 
         if(userRepository.findByEmail(registerRequest.getEmail()).isPresent()) return Optional.empty();
 
@@ -63,5 +62,26 @@ public class UserService {
         } else {
             return Optional.empty();
         }
+    }
+
+    public Optional<UserDTO> updateUser(Long id, EditRequestDTO editRequestDTO) throws IllegalArgumentException{
+        Optional<User> userOptional = userRepository.findById(id);
+
+        if(userOptional.isEmpty()) return Optional.empty();
+
+        User user = userOptional.get();
+
+        if(editRequestDTO.getEmail() != null && !editRequestDTO.getEmail().isBlank() && !editRequestDTO.getEmail().equals(user.getEmail())){
+            if(userRepository.findByEmail(editRequestDTO.getEmail()).isPresent()){
+                return Optional.empty();
+            }
+
+            user.setEmail(editRequestDTO.getEmail());
+        }
+        if(editRequestDTO.getFirstName() != null && !editRequestDTO.getFirstName().isBlank()) user.setFirstName(editRequestDTO.getFirstName());
+        if(editRequestDTO.getLastName() != null && !editRequestDTO.getLastName().isBlank()) user.setLastName(editRequestDTO.getLastName());
+        if(editRequestDTO.getPassword() != null && editRequestDTO.getPassword().length() >= 8) user.setPassword(hmacSHA256.hashPassword(editRequestDTO.getPassword()));
+
+        return Optional.of(userMapper.userToUserDTO(userRepository.save(user)));
     }
 }
