@@ -6,6 +6,7 @@ import com.djokic.userserviceff.dto.RegisterRequestDTO;
 import com.djokic.userserviceff.dto.UserDTO;
 import com.djokic.userserviceff.entity.User;
 import com.djokic.userserviceff.enumeration.Role;
+import com.djokic.userserviceff.exception.*;
 import com.djokic.userserviceff.mappers.UserMapper;
 import com.djokic.userserviceff.repository.UserRepository;
 import com.djokic.userserviceff.util.HmacSHA256;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,22 +25,21 @@ public class UserService {
     private final UserMapper userMapper;
 
 
-    public Optional<UserDTO> findById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::userToUserDTO);
+    public UserDTO findById(Long id) throws RuntimeException{
+        return userMapper.userToUserDTO(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
     }
 
     public List<UserDTO> getUsers() {
         return userMapper.userListToUserDTOList(userRepository.findAll());
     }
 
-    public Optional<UserDTO> createUser(RegisterRequestDTO registerRequest) {
-        Assert.notNull(registerRequest.getEmail(), "Email must be provided !");
-        Assert.notNull(registerRequest.getPassword(), "Password cannot be blank");
+    public UserDTO createUser(RegisterRequestDTO registerRequest) throws RuntimeException{
+        if(registerRequest.getEmail().isEmpty()) throw new EmailNotProvidedException();
+        if(registerRequest.getPassword().length() < 8) throw new PasswordLengthException();
 
         registerRequest.setEmail(registerRequest.getEmail().toLowerCase());
 
-        if(userRepository.findByEmail(registerRequest.getEmail()).isPresent()) return Optional.empty();
+        if(userRepository.findByEmail(registerRequest.getEmail()).isPresent())throw new EmailAlreadyExistsException(registerRequest.getEmail());
 
         User user = User
                 .builder()
@@ -51,37 +50,54 @@ public class UserService {
                 .role(Role.USER)
                 .build();
 
-        return Optional.of(userMapper.userToUserDTO(userRepository.save(user)));
+        return userMapper.userToUserDTO(userRepository.save(user));
     }
 
-    public Optional<UserDTO> loginUser(LoginRequestDTO loginRequestDTO){
-        if(loginRequestDTO.getEmail() != null && loginRequestDTO.getPassword() != null){
-            return userRepository.findByEmail(loginRequestDTO.getEmail())
-                    .filter(user -> hmacSHA256.matches(loginRequestDTO.getPassword(), user.getPassword()))
-                    .map(userMapper::userToUserDTO);
-        } else {
-            return Optional.empty();
-        }
+    public UserDTO loginUser(LoginRequestDTO loginRequestDTO) throws RuntimeException{
+        if(loginRequestDTO.getEmail().isEmpty()) throw new EmailNotProvidedException();
+        if(loginRequestDTO.getPassword().isEmpty()) throw new PasswordNotProvidedException();
+
+        User user = userRepository.findByEmail(loginRequestDTO.getEmail()).orElseThrow(WrongCredentialsException::new);
+
+        if(!hmacSHA256.hashPassword(loginRequestDTO.getPassword()).equals(user.getPassword())) throw new WrongCredentialsException();
+
+        return userMapper.userToUserDTO(user);
     }
 
-    public Optional<UserDTO> updateUser(Long id, EditRequestDTO editRequestDTO) throws IllegalArgumentException{
+    public UserDTO updateUser(Long id, EditRequestDTO editRequestDTO) throws RuntimeException{
         Optional<User> userOptional = userRepository.findById(id);
 
-        if(userOptional.isEmpty()) return Optional.empty();
+        if(userOptional.isEmpty()) throw new UserNotFoundException(id);
 
         User user = userOptional.get();
 
         if(editRequestDTO.getEmail() != null && !editRequestDTO.getEmail().isBlank() && !editRequestDTO.getEmail().equals(user.getEmail())){
             if(userRepository.findByEmail(editRequestDTO.getEmail()).isPresent()){
-                return Optional.empty();
+                throw new EmailAlreadyExistsException(editRequestDTO.getEmail());
             }
 
             user.setEmail(editRequestDTO.getEmail());
         }
         if(editRequestDTO.getFirstName() != null && !editRequestDTO.getFirstName().isBlank()) user.setFirstName(editRequestDTO.getFirstName());
         if(editRequestDTO.getLastName() != null && !editRequestDTO.getLastName().isBlank()) user.setLastName(editRequestDTO.getLastName());
-        if(editRequestDTO.getPassword() != null && editRequestDTO.getPassword().length() >= 8) user.setPassword(hmacSHA256.hashPassword(editRequestDTO.getPassword()));
+        if(editRequestDTO.getPassword() != null && !user.getPassword().equals(hmacSHA256.hashPassword(editRequestDTO.getPassword()))){
+            if(editRequestDTO.getPassword().length() < 8) throw new PasswordLengthException();
 
-        return Optional.of(userMapper.userToUserDTO(userRepository.save(user)));
+            user.setPassword(hmacSHA256.hashPassword(editRequestDTO.getPassword()));
+        }
+
+        return userMapper.userToUserDTO(userRepository.save(user));
+    }
+
+    public UserDTO changeUserRole(Long id) throws RuntimeException{
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        if(user.getRole() == Role.ADMIN){
+            user.setRole(Role.USER);
+        }else{
+            user.setRole(Role.ADMIN);
+        }
+
+        return userMapper.userToUserDTO(userRepository.save(user));
     }
 }

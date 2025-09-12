@@ -4,18 +4,14 @@ import com.djokic.userserviceff.dto.EditRequestDTO;
 import com.djokic.userserviceff.dto.LoginRequestDTO;
 import com.djokic.userserviceff.dto.RegisterRequestDTO;
 import com.djokic.userserviceff.dto.UserDTO;
-import com.djokic.userserviceff.entity.User;
 import com.djokic.userserviceff.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,35 +24,15 @@ public class UserController {
     public ResponseEntity<?> register(
             @Valid @RequestBody RegisterRequestDTO registerRequest){
 
-        Optional<UserDTO> createdUser = userService.createUser(registerRequest);
-
-        if (createdUser.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of(
-                            "status", HttpStatus.CONFLICT.value(),
-                            "error", "Conflict",
-                            "message", "User with this email already exists!"
-                    ));
-        }
+        UserDTO createdUser = userService.createUser(registerRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
 
-        Optional<UserDTO> loggedInUser = userService.loginUser(loginRequest);
-
-        if (loggedInUser.isPresent()) {
-            return ResponseEntity.ok(loggedInUser.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                            "status", HttpStatus.UNAUTHORIZED.value(),
-                            "error", "Unauthorized",
-                            "message", "Invalid email or password"
-                    ));
-        }
+        UserDTO loggedInUser = userService.loginUser(loginRequest);
+        return ResponseEntity.ok(loggedInUser);
     }
 
     @PatchMapping("/edit/{id}")
@@ -64,23 +40,25 @@ public class UserController {
             @PathVariable Long id,
             @Valid @RequestBody EditRequestDTO editRequest) {
 
-        Optional<UserDTO> updatedUser = userService.updateUser(id, editRequest);
+        UserDTO updatedUser = userService.updateUser(id, editRequest);
 
-        return updatedUser
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return ResponseEntity.ok(updatedUser);
     }
 
     @GetMapping("/{id}/details")
     public ResponseEntity<?> getUserDetails(@PathVariable Long id) {
-        Optional<UserDTO> userDTO = userService.findById(id);
-        return userDTO
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        UserDTO userDTO = userService.findById(id);
+
+        return ResponseEntity.ok(userDTO);
     }
 
     @GetMapping("/")
     public ResponseEntity<List<UserDTO>> getAllUsers(){
         return ResponseEntity.ok(userService.getUsers());
+    }
+
+    @GetMapping("/change-role/{id}")
+    public ResponseEntity<?> changeUserRole(@PathVariable Long id){
+        return ResponseEntity.ok(userService.changeUserRole(id));
     }
 }
