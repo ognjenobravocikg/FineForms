@@ -1,8 +1,16 @@
 package com.fineforms.backend.model;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 
 @Entity
+@Table(name = "options")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Option {
 
     @Id
@@ -16,12 +24,4 @@ public class Option {
     @JoinColumn(name = "question_id")
     private Question question;
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public String getLabel() { return label; }
-    public void setLabel(String label) { this.label = label; }
-    public int getOrdinal() { return ordinal; }
-    public void setOrdinal(int ordinal) { this.ordinal = ordinal; }
-    public Question getQuestion() { return question; }
-    public void setQuestion(Question question) { this.question = question; }
 }
