@@ -12,7 +12,6 @@ import com.djokic.userserviceff.repository.UserRepository;
 import com.djokic.userserviceff.util.HmacSHA256;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Optional;

@@ -57,7 +57,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
-    @GetMapping("/change-role/{id}")
+    @PatchMapping("/change-role/{id}")
     public ResponseEntity<?> changeUserRole(@PathVariable Long id){
         return ResponseEntity.ok(userService.changeUserRole(id));
     }
