@@ -2,10 +2,11 @@ package com.djokic.userserviceff.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class EditRequestDTO {
 
     @Email(message = "Invalid E-Mail address !")
@@ -14,8 +15,8 @@ public class EditRequestDTO {
             message = "Email must be a valid email address with no spaces"
     )
     private String email;
+    private String password;
 
     private String firstName;
     private String lastName;
-    private String password;
 }

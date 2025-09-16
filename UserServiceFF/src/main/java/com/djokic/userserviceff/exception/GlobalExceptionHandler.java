@@ -1,5 +1,6 @@
 package com.djokic.userserviceff.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,6 +79,66 @@ public class GlobalExceptionHandler {
                         Map.of("status", HttpStatus.UNAUTHORIZED.value(),
                                 "error", "Unauthorized",
                                 "message", wrongCredentialsException.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(FirstNameNotProvidedException.class)
+    public ResponseEntity<Map<String, Object>> handleFirstNameNotProvidedException(FirstNameNotProvidedException firstNameNotProvidedException){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        Map.of("status", HttpStatus.BAD_REQUEST.value(),
+                                "error", "Bad Request",
+                                "message", firstNameNotProvidedException.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(LastNameNotProvidedException.class)
+    public ResponseEntity<Map<String, Object>> handleLastNameNotProvidedException(LastNameNotProvidedException lastNameNotProvidedException){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        Map.of("status", HttpStatus.BAD_REQUEST.value(),
+                                "error", "Bad Request",
+                                "message", lastNameNotProvidedException.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(InvalidEmailFormatException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidEmailFormatException(InvalidEmailFormatException invalidEmailFormatException){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        Map.of("status", HttpStatus.BAD_REQUEST.value(),
+                                "error", "Bad Request",
+                                "message", invalidEmailFormatException.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(InvalidInputFieldFormatException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException constraintViolationException){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        Map.of("status", HttpStatus.BAD_REQUEST.value(),
+                                "error", "Bad Request",
+                                "message", constraintViolationException.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(IdNotProvidedException.class)
+    public ResponseEntity<Map<String, Object>> handleIdNotProvidedException(IdNotProvidedException idNotProvidedException){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        Map.of("status", HttpStatus.BAD_REQUEST.value(),
+                                "error", "Bad Request",
+                                "message", idNotProvidedException.getMessage()
                         )
                 );
     }
