@@ -20,8 +20,8 @@ public class FormController {
 
 
     @PostMapping
-    public ResponseEntity<Form> createForm(@RequestBody CreateFormDto dto, @RequestParam Long ownerId) {
-        return ResponseEntity.ok(formService.createForm(dto, ownerId));
+    public ResponseEntity<Form> createForm(@RequestBody CreateFormDto dto) {
+        return ResponseEntity.ok(formService.createForm(dto));
     }
 
     @GetMapping("/{id}")

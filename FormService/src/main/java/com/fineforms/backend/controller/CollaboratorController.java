@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/forms")
+@RequestMapping("/api/forms/collab")
 @RequiredArgsConstructor
 public class CollaboratorController {
     private final FormService formService;

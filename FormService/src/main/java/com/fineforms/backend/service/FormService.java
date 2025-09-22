@@ -22,9 +22,9 @@ public class FormService {
     }
 
     @Transactional
-    public Form createForm(CreateFormDto dto, Long ownerId) {
+    public Form createForm(CreateFormDto dto) {
         Form f = new Form();
-        f.setOwnerId(ownerId);
+        f.setOwnerId(dto.getOwnerId());
         f.setTitle(dto.getTitle());
         f.setDescription(dto.getDescription());
         f.setRequiresAuth(dto.isRequiresAuth());
