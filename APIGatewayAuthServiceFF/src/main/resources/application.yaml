@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: APIGatewayAuthServiceFF
+
+jwt:
+  secret: wIhNnWm5Z1t98sVRdL9Tnq3zFjK2gWc8YpQ4b7r0x1aB2mC6oVdE3jL9pH8sQ7u
+  expiration-ms: 86400000
+
+
+server:
+  port: 8080
+
+user:
+  service:
+    url: http://localhost:8070
+
+
+form:
+  service:
+    url: http://localhost:8060
+
+response:
+  service:
+    url: http://localhost:8050
