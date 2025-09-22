@@ -1,6 +1,6 @@
 package com.fineforms.backend.repo;
 
-import com.fineforms.backend.model.Question;
+import com.fineforms.backend.entity.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

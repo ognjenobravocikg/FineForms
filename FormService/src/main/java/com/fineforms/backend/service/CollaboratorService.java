@@ -1,7 +1,7 @@
 package com.fineforms.backend.service;
 
 import org.springframework.stereotype.Service;
-import com.fineforms.backend.model.Collaborator;
+import com.fineforms.backend.entity.Collaborator;
 import com.fineforms.backend.repo.CollaboratorRepository;
 import com.fineforms.backend.enums.CollaboratorRole;
 import com.fineforms.backend.repo.FormRepository;

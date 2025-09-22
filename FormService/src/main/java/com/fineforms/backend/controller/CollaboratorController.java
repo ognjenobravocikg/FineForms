@@ -1,9 +1,9 @@
 package com.fineforms.backend.controller;
 
-import com.fineforms.backend.model.Form;
+import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.service.FormService;
 import com.fineforms.backend.DTO.CreateFormDto;
-import com.fineforms.backend.model.Collaborator;
+import com.fineforms.backend.entity.Collaborator;
 import com.fineforms.backend.service.CollaboratorService;
 import com.fineforms.backend.enums.CollaboratorRole;
 import lombok.RequiredArgsConstructor;

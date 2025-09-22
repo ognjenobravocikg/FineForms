@@ -1,4 +1,4 @@
-package com.fineforms.backend.model;
+package com.fineforms.backend.entity;
 
 import com.fineforms.backend.enums.CollaboratorRole;
 import jakarta.persistence.*;

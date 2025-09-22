@@ -1,4 +1,4 @@
-package com.fineforms.backend.model;
+package com.fineforms.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

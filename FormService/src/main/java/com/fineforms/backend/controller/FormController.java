@@ -1,7 +1,7 @@
 package com.fineforms.backend.controller;
 
 import com.fineforms.backend.DTO.CreateFormDto;
-import com.fineforms.backend.model.Form;
+import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.DTO.CreateQuestionDto;
 import com.fineforms.backend.service.FormService;
 import org.springframework.http.ResponseEntity;
