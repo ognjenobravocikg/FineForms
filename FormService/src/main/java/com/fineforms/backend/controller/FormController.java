@@ -44,27 +44,27 @@ public class FormController {
         formService.deleteForm(id);
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/{formId}/questions")
+    @PostMapping("/{formId}/questions") // I ovo isto mislim da moze da se obrise jer se pitanja cuvaju kada se cuva forma.
     public ResponseEntity<Form> addQuestion(@PathVariable Long formId, @RequestBody CreateQuestionDto questionDto) {
         return ResponseEntity.ok(formService.addQuestion(formId, questionDto));
     }
 
-    @PutMapping("/{formId}/questions/{questionId}")
+    @PutMapping("/{formId}/questions/{questionId}") // Proveri da li ima potrebe da ovo postoji ili samo da se update-uje cela forma i onda implicitno poziva update za svako pitanje u formi
     public ResponseEntity<Form> updateQuestion(@PathVariable Long formId, @PathVariable Long questionId, @RequestBody CreateQuestionDto questionDto) {
         return ResponseEntity.ok(formService.updateQuestion(formId, questionId, questionDto));
     }
 
-    @DeleteMapping("/{formId}/questions/{questionId}")
+    @DeleteMapping("/{formId}/questions/{questionId}") // Ovo moze da ostane
     public ResponseEntity<Form> deleteQuestion(@PathVariable Long formId, @PathVariable Long questionId) {
         return ResponseEntity.ok(formService.deleteQuestion(formId, questionId));
     }
 
-    @PostMapping("/{formId}/questions/{questionId}/clone")
+    @PostMapping("/{formId}/questions/{questionId}/clone") //TODO: Ukloniti ovu metodu jer front-end vrsi kloniranje pitanja i onda samo prosledi request za update-ovanje cele forme
     public ResponseEntity<Form> cloneQuestion(@PathVariable Long formId, @PathVariable Long questionId) {
         return ResponseEntity.ok(formService.cloneQuestion(formId, questionId));
     }
 
-    @PostMapping("/{formId}/questions/reorder")
+    @PostMapping("/{formId}/questions/reorder") //TODO: Ukloniti ovu metodu jer front-end moze da vrsi reordering i samo prosledi patch/put request
     public ResponseEntity<Form> reorderQuestions(@PathVariable Long formId, @RequestBody List<Long> newOrder) {
         return ResponseEntity.ok(formService.reorderQuestions(formId, newOrder));
     }

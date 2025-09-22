@@ -13,12 +13,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/forms/collab")
+@RequestMapping("/api/forms/collab") // TODO: Zameniti endpoint -> /api/forms/{formId}/collab/
 @RequiredArgsConstructor
 public class CollaboratorController {
     private final FormService formService;
     private final CollaboratorService collaboratorService;
 
+    /*
+    TODO: Prepraviti kontroler od nule. Ovaj kontroler ce imati ulogu handle-ovanja zahteva vezanih za kolaboratore.
+          Na primer POST zahtev na /api/forms/{formId}/collab endpoint sa request body-em u kom je spakovan userDTO ili userId
+          ce dodati kolaboratora sa tacno definisanom ulogom (viewer, editor) na formu sa odgovarajucim ID-em.
+          GET zahtev na /api/forms/{formId}/collab endpoint ce u response body vratiti JSON objekat koji ce u sebi imati listu svih kolaboratora sa date forme.
+          PATCH zahtev na /api/forms/{formId}/collab/{userId} endpoint ima za cilj promenu uloge kolaboratora *****OVAJ ZAHTEV MOZE BITI OBRADJEN SAMO KADA GA OWNER POZIVA*****
+          DELETE zahtev na /api/forms/{formId}/collab{userId} endpoint ima za cilj brisanje kolaboratora sa zadate forme *****OVAJ ZAHTEV MOZE BITI OBRADJEN SAMO KADA GA OWNER POZIVA*****
+    */
+
+    // TODO: Ukloniti createForm metodu iz ovog kontrolera
     @PostMapping
     public ResponseEntity<Form> createForm(@RequestBody CreateFormDto dto, @RequestParam Long ownerId) {
         return ResponseEntity.ok(formService.createForm(dto, ownerId));
