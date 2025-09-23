@@ -142,4 +142,16 @@ public class GlobalExceptionHandler {
                         )
                 );
     }
+
+    @ExceptionHandler(InputLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleInputLimitExceededException(InputLimitExceededException inputLimitExceededException){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        Map.of("status", HttpStatus.BAD_REQUEST.value(),
+                                "error", "Bad Request",
+                                "message", inputLimitExceededException.getMessage()
+                        )
+                );
+    }
 }

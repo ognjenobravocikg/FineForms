@@ -3,7 +3,6 @@ package com.djokic.userserviceff.mappers;
 import com.djokic.userserviceff.dto.UserDTO;
 import com.djokic.userserviceff.entity.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.List;
 

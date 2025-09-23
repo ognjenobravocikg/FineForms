@@ -1,12 +1,10 @@
 package com.djokic.userserviceff;
 
-import com.djokic.userserviceff.dto.EditRequestDTO;
-import com.djokic.userserviceff.dto.LoginRequestDTO;
-import com.djokic.userserviceff.dto.RegisterRequestDTO;
-import com.djokic.userserviceff.dto.UserDTO;
+import com.djokic.userserviceff.dto.*;
 import com.djokic.userserviceff.enumeration.Role;
 import com.djokic.userserviceff.exception.*;
 import com.djokic.userserviceff.service.UserService;
+import com.djokic.userserviceff.util.HmacSHA256;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +25,9 @@ public class UserServiceTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private HmacSHA256 hmacSHA256;
+
     // REGISTER USE-CASE TESTS
 
     public RegisterRequestDTO createMockRegisterRequest(String email, String password, String firstName, String lastName){
@@ -39,10 +40,11 @@ public class UserServiceTest {
     void testCreateUserSuccess(){
         RegisterRequestDTO registerRequest = createMockRegisterRequest("testUser1@gmail.com","passwordTest!","John","Doe");
 
-        UserDTO createdUser = userService.createUser(registerRequest);
+        UserDetailsDTO createdUser = userService.createUser(registerRequest);
 
         assertNotNull(createdUser);
         assertEquals(registerRequest.getEmail(),createdUser.getEmail());
+        assertEquals(hmacSHA256.hashPassword(registerRequest.getPassword()), createdUser.getPassword());
         assertEquals(registerRequest.getFirstName(),createdUser.getFirstName());
         assertEquals(registerRequest.getLastName(),createdUser.getLastName());
     }
@@ -136,9 +138,11 @@ public class UserServiceTest {
     void findUserByIdSuccess(){
         RegisterRequestDTO registerRequest = createMockRegisterRequest("testUser1@gmail.com","passwordTest!","John","Doe");
 
-        UserDTO createdUser = userService.createUser(registerRequest);
+        UserDetailsDTO createdUser = userService.createUser(registerRequest);
 
-        assertEquals(createdUser, userService.findById(createdUser.getId()));
+        UserDTO createdUserDto = UserDTO.builder().email(createdUser.getEmail()).firstName(createdUser.getFirstName()).lastName(createdUser.getLastName()).id(createdUser.getId()).role(createdUser.getRole()).build();
+
+        assertEquals(createdUserDto, userService.findById(createdUser.getId()));
     }
 
     @Test
@@ -195,7 +199,7 @@ public class UserServiceTest {
     @Test
     void updateUserSuccess() {
         RegisterRequestDTO registerRequest = createMockRegisterRequest("test@test.com", "password123!", "John", "Doe");
-        UserDTO createdUser = userService.createUser(registerRequest);
+        UserDetailsDTO createdUser = userService.createUser(registerRequest);
 
         EditRequestDTO editRequest = new EditRequestDTO("updated@test.com", "newpassword123!", "Jane", "Smith");
         UserDTO updatedUser = userService.updateUser(createdUser.getId(), editRequest);
@@ -210,7 +214,7 @@ public class UserServiceTest {
         RegisterRequestDTO user1 = createMockRegisterRequest("test1@test.com", "password123!", "John", "Doe");
         RegisterRequestDTO user2 = createMockRegisterRequest("test2@test.com", "password123!", "Jane", "Smith");
 
-        UserDTO createdUser1 = userService.createUser(user1);
+        UserDetailsDTO createdUser1 = userService.createUser(user1);
         userService.createUser(user2);
 
         EditRequestDTO editRequest = new EditRequestDTO("test2@test.com", "password123!", "John", "Doe");
@@ -222,7 +226,7 @@ public class UserServiceTest {
     @Test
     void changeUserRoleSuccess() {
         RegisterRequestDTO registerRequest = createMockRegisterRequest("test@test.com", "password123!", "John", "Doe");
-        UserDTO createdUser = userService.createUser(registerRequest);
+        UserDetailsDTO createdUser = userService.createUser(registerRequest);
 
         UserDTO updatedUser = userService.changeUserRole(createdUser.getId());
         assertEquals(Role.ADMIN, updatedUser.getRole());

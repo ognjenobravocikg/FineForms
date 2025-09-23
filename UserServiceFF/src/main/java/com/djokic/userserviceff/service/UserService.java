@@ -1,12 +1,10 @@
 package com.djokic.userserviceff.service;
 
-import com.djokic.userserviceff.dto.EditRequestDTO;
-import com.djokic.userserviceff.dto.LoginRequestDTO;
-import com.djokic.userserviceff.dto.RegisterRequestDTO;
-import com.djokic.userserviceff.dto.UserDTO;
+import com.djokic.userserviceff.dto.*;
 import com.djokic.userserviceff.entity.User;
 import com.djokic.userserviceff.enumeration.Role;
 import com.djokic.userserviceff.exception.*;
+import com.djokic.userserviceff.mappers.UserDetailsMapper;
 import com.djokic.userserviceff.mappers.UserMapper;
 import com.djokic.userserviceff.repository.UserRepository;
 import com.djokic.userserviceff.util.HmacSHA256;
@@ -16,17 +14,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final HmacSHA256 hmacSHA256;
+    private final UserDetailsMapper userDetailsMapper;
     private final UserMapper userMapper;
-    private final AbstractHandlerMethodAdapter abstractHandlerMethodAdapter;
 
-    public UserDTO findByEmail(String email) throws RuntimeException{
+    public UserDetailsDTO findByEmail(String email) throws RuntimeException{
         if(email == null || email.isEmpty()) throw new EmailNotProvidedException();
 
         String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
@@ -34,7 +31,7 @@ public class UserService {
             throw new InvalidEmailFormatException();
         }
 
-        return userMapper.userToUserDTO(userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email)));
+        return userDetailsMapper.userToUserDetailsDTO(userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email)));
     }
 
     public UserDTO findById(Long id) throws RuntimeException{
@@ -48,7 +45,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO createUser(RegisterRequestDTO registerRequest) throws RuntimeException{
+    public UserDetailsDTO createUser(RegisterRequestDTO registerRequest) throws RuntimeException{
         if(registerRequest.getEmail().isEmpty()) throw new EmailNotProvidedException();
         if(registerRequest.getFirstName().isEmpty()) throw new FirstNameNotProvidedException();
         if(registerRequest.getLastName().isEmpty()) throw new LastNameNotProvidedException();
@@ -64,6 +61,14 @@ public class UserService {
             throw new InvalidEmailFormatException();
         }
 
+        String cleanFirstName = registerRequest.getFirstName().replaceAll("[^a-zA-Z]", "");
+        String cleanLastName = registerRequest.getLastName().replaceAll("[^a-zA-Z]", "");
+
+        if(cleanFirstName.isEmpty()) throw new InvalidInputFieldFormatException("First name");
+        if(cleanLastName.isEmpty()) throw new InvalidInputFieldFormatException("Last name");
+        if(cleanFirstName.length() > 50) throw new InputLimitExceededException("First name");
+        if(cleanLastName.length() > 50) throw new InputLimitExceededException("Last name");
+
         User user = User
                 .builder()
                 .email(registerRequest.getEmail())
@@ -73,7 +78,7 @@ public class UserService {
                 .role(Role.USER)
                 .build();
 
-        return userMapper.userToUserDTO(userRepository.save(user));
+        return userDetailsMapper.userToUserDetailsDTO(userRepository.save(user));
     }
 
     public UserDTO loginUser(LoginRequestDTO loginRequestDTO) throws RuntimeException{
@@ -112,11 +117,19 @@ public class UserService {
         }
 
         if (editRequestDTO.getFirstName() != null && !editRequestDTO.getFirstName().isEmpty()) {
-            user.setFirstName(editRequestDTO.getFirstName());
+            String cleanFirstName = editRequestDTO.getFirstName().replaceAll("[^a-zA-Z]", "");
+            if(cleanFirstName.isEmpty()) throw new InvalidInputFieldFormatException("First name");
+            if(cleanFirstName.length() > 50) throw new InputLimitExceededException("First name");
+
+            user.setFirstName(cleanFirstName);
         }
 
         if (editRequestDTO.getLastName() != null && !editRequestDTO.getLastName().isEmpty()) {
-            user.setLastName(editRequestDTO.getLastName());
+            String cleanLastName = editRequestDTO.getLastName().replaceAll("[^a-zA-Z]", "");
+            if(cleanLastName.isEmpty()) throw new InvalidInputFieldFormatException("Last name");
+            if(cleanLastName.length() > 50) throw new InputLimitExceededException("Last name");
+
+            user.setLastName(cleanLastName);
         }
 
         if (editRequestDTO.getPassword() != null && !editRequestDTO.getPassword().isEmpty()) {

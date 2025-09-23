@@ -1,9 +1,6 @@
 package com.djokic.userserviceff.controller;
 
-import com.djokic.userserviceff.dto.EditRequestDTO;
-import com.djokic.userserviceff.dto.LoginRequestDTO;
-import com.djokic.userserviceff.dto.RegisterRequestDTO;
-import com.djokic.userserviceff.dto.UserDTO;
+import com.djokic.userserviceff.dto.*;
 import com.djokic.userserviceff.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +21,7 @@ public class UserController {
     public ResponseEntity<?> register(
             @Valid @RequestBody RegisterRequestDTO registerRequest){
 
-        UserDTO createdUser = userService.createUser(registerRequest);
+        UserDetailsDTO createdUser = userService.createUser(registerRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
@@ -54,9 +51,9 @@ public class UserController {
 
     @GetMapping("/{email}")
     public ResponseEntity<?> getUserDetails(@PathVariable String email) {
-        UserDTO userDTO = userService.findByEmail(email);
+        UserDetailsDTO userDetailsDTO = userService.findByEmail(email);
 
-        return ResponseEntity.ok(userDTO);
+        return ResponseEntity.ok(userDetailsDTO);
     }
 
     @GetMapping("/")
