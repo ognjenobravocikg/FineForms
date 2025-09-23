@@ -9,6 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateQuestionDto {
+    private Long id;
     public String text;
     public boolean required;
     public String type; // example: short_text, long_text, multi_choice etc.
@@ -17,6 +18,8 @@ public class CreateQuestionDto {
     public int numberMin;
     public int numberMax;
     public int numberStep;
+    private Integer minRequiredAnswers;
+    private Integer maxAllowedAnswers;
 
     public List<OptionDto> options; // for multi_choice
 }
