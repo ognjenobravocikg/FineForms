@@ -7,6 +7,8 @@ import FormBuilder from "./Components/Forms/FormBuilder.jsx";
 import Login from "./Components/Authentication/Login.jsx";
 import Register from "./Components/Authentication/Register.jsx";
 import About from "./Components/About/About.jsx";
+import Profile from "./Components/Profile/Profile.jsx";
+import FormsPage from "./Components/My-Forms/FormsPage.jsx";
 
 /* ------------------ Layouts ------------------ */
 
@@ -52,6 +54,22 @@ export default function App() {
           element={
             <MainLayout>
               <About />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/my-forms"
+          element={
+            <MainLayout>
+              <FormsPage />
             </MainLayout>
           }
         />

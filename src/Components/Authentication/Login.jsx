@@ -4,23 +4,25 @@ import { useNavigate } from "react-router-dom";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     const loginData = { email, password };
 
-    console.log("Login attempt:", loginData);
-
     try {
-      const response = await fetch("http://localhost:8080/api/auth/login", {
+      const response = await fetch("http://localhost:8080/api/users/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginData),
       });
 
       if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("user", JSON.stringify(data));
         alert("Login successful!");
+        navigate("/forms");
       } else {
         alert("Invalid email or password.");
       }
@@ -28,12 +30,6 @@ export default function Login() {
       console.error("Error:", err);
       alert("Could not connect to backend.");
     }
-  };
-
-  const navigate = useNavigate();
-
-  const handleRegister = () => {
-    navigate("/register");
   };
 
   return (
@@ -45,7 +41,7 @@ export default function Login() {
           className="w-3/4 max-w-md p-8 bg-white shadow-lg rounded-lg"
         >
           <div className="flex justify-center pb-2">
-            <img src="logo.png" class="h-6"></img>
+            <img src="logo.png" className="h-6" alt="Logo" />
           </div>
           <h2 className="text-3xl font-bold mb-6 text-gray-800">Login</h2>
 
@@ -76,8 +72,9 @@ export default function Login() {
 
           <div className="flex justify-center pt-3">
             <button
-              onClick={handleRegister}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition text-sm"
+              type="button"
+              onClick={() => navigate("/register")}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition text-sm"
             >
               Don't have an Account? Register!
             </button>

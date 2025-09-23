@@ -2,45 +2,50 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
-  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setError("Passwords do not match!");
       return;
     }
 
-    const registerData = { username, email, password };
-
-    console.log("Register attempt:", registerData);
+    const registerData = { email, password, firstName, lastName };
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(registerData),
-      });
+      const response = await fetch(
+        "http://localhost:8080/api/users/register/",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(registerData),
+        }
+      );
 
-      if (response.ok) {
-        alert("Account created successfully!");
+      if (response.status === 201) {
+        const data = await response.json();
+        setSuccess(`User ${data.email} registered successfully!`);
+        setError("");
+        navigate("/login");
+      } else if (response.status === 409) {
+        const errData = await response.json();
+        setError(errData.message || "User already exists!");
       } else {
-        alert("Error creating account.");
+        setError("Unexpected error occurred!");
       }
     } catch (err) {
-      console.error("Error:", err);
-      alert("Could not connect to backend.");
+      setError("Could not connect to backend.");
     }
-  };
-
-  const navigate = useNavigate();
-
-  const handleLogin = () => {
-    navigate("/login");
   };
 
   return (
@@ -52,16 +57,28 @@ export default function Register() {
           className="w-3/4 max-w-md p-8 bg-white shadow-lg rounded-lg"
         >
           <div className="flex justify-center pb-2">
-            <img src="logo_green.png" class="h-6"></img>
+            <img src="logo_green.png" className="h-6" alt="Logo" />
           </div>
 
           <h2 className="text-3xl font-bold mb-6 text-gray-800">Register</h2>
 
+          {success && <p className="text-green-600 mb-4">{success}</p>}
+          {error && <p className="text-red-600 mb-4">{error}</p>}
+
           <input
             type="text"
-            placeholder="User Name"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             className="w-full p-3 mb-4 border rounded-lg focus:ring-2 focus:ring-blue-500"
             required
           />
@@ -102,8 +119,9 @@ export default function Register() {
 
           <div className="flex justify-center pt-3">
             <button
-              onClick={handleLogin}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition text-sm"
+              type="button"
+              onClick={() => navigate("/login")}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition text-sm"
             >
               Already have an Account? Log in!
             </button>
