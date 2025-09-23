@@ -61,8 +61,15 @@ public class UserService {
             throw new InvalidEmailFormatException();
         }
 
-        String cleanFirstName = registerRequest.getFirstName().replaceAll("[^a-zA-Z]", "");
-        String cleanLastName = registerRequest.getLastName().replaceAll("[^a-zA-Z]", "");
+        String cleanFirstName = registerRequest.getFirstName().replaceAll("\\s+", "");
+        String cleanLastName = registerRequest.getLastName().replaceAll("\\s+", "");
+
+        if (!cleanFirstName.matches("^[a-zA-Z]+$")) {
+            throw new InvalidInputFieldFormatException("First name");
+        }
+        if (!cleanLastName.matches("^[a-zA-Z]+$")) {
+            throw new InvalidInputFieldFormatException("Last name");
+        }
 
         if(cleanFirstName.isEmpty()) throw new InvalidInputFieldFormatException("First name");
         if(cleanLastName.isEmpty()) throw new InvalidInputFieldFormatException("Last name");
@@ -73,8 +80,8 @@ public class UserService {
                 .builder()
                 .email(registerRequest.getEmail())
                 .password(hmacSHA256.hashPassword(registerRequest.getPassword()))
-                .firstName(registerRequest.getFirstName())
-                .lastName(registerRequest.getLastName())
+                .firstName(cleanFirstName)
+                .lastName(cleanFirstName)
                 .role(Role.USER)
                 .build();
 
