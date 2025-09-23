@@ -119,7 +119,7 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ExceptionHandler(InvalidInputFieldFormatException.class)
+    @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException constraintViolationException){
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -127,6 +127,18 @@ public class GlobalExceptionHandler {
                         Map.of("status", HttpStatus.BAD_REQUEST.value(),
                                 "error", "Bad Request",
                                 "message", constraintViolationException.getMessage()
+                        )
+                );
+    }
+
+    @ExceptionHandler(InvalidInputFieldFormatException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidInputFieldFormatException(InvalidInputFieldFormatException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        Map.of("status", HttpStatus.BAD_REQUEST.value(),
+                                "error", "Bad Request",
+                                "message", ex.getMessage()
                         )
                 );
     }

@@ -52,7 +52,7 @@ public class UserService {
         if(registerRequest.getPassword().isEmpty()) throw new PasswordNotProvidedException();
         if(registerRequest.getPassword().length() < 8) throw new PasswordLengthException();
 
-        registerRequest.setEmail(registerRequest.getEmail().toLowerCase());
+        registerRequest.setEmail(registerRequest.getEmail().toLowerCase().trim());
 
         if(userRepository.findByEmail(registerRequest.getEmail()).isPresent())throw new EmailAlreadyExistsException(registerRequest.getEmail());
 
@@ -61,13 +61,14 @@ public class UserService {
             throw new InvalidEmailFormatException();
         }
 
-        String cleanFirstName = registerRequest.getFirstName().replaceAll("\\s+", "");
-        String cleanLastName = registerRequest.getLastName().replaceAll("\\s+", "");
+        String cleanFirstName = registerRequest.getFirstName().trim();
+        String cleanLastName = registerRequest.getLastName().trim();
 
-        if (!cleanFirstName.matches("^[a-zA-Z]+$")) {
+        if (!cleanFirstName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
             throw new InvalidInputFieldFormatException("First name");
         }
-        if (!cleanLastName.matches("^[a-zA-Z]+$")) {
+
+        if (!cleanLastName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
             throw new InvalidInputFieldFormatException("Last name");
         }
 
@@ -81,7 +82,7 @@ public class UserService {
                 .email(registerRequest.getEmail())
                 .password(hmacSHA256.hashPassword(registerRequest.getPassword()))
                 .firstName(cleanFirstName)
-                .lastName(cleanFirstName)
+                .lastName(cleanLastName)
                 .role(Role.USER)
                 .build();
 
@@ -90,14 +91,17 @@ public class UserService {
 
     public UserDTO loginUser(LoginRequestDTO loginRequestDTO) throws RuntimeException{
         if(loginRequestDTO.getEmail().isEmpty()) throw new EmailNotProvidedException();
+
+        String normalizedEmail = loginRequestDTO.getEmail().trim().toLowerCase();
+
         String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-        if(!loginRequestDTO.getEmail().matches(emailRegex)) {
+        if(!normalizedEmail.matches(emailRegex)) {
             throw new InvalidEmailFormatException();
         }
 
         if(loginRequestDTO.getPassword().isEmpty()) throw new PasswordNotProvidedException();
 
-        User user = userRepository.findByEmail(loginRequestDTO.getEmail()).orElseThrow(WrongCredentialsException::new);
+        User user = userRepository.findByEmail(normalizedEmail).orElseThrow(WrongCredentialsException::new);
 
         if(!hmacSHA256.hashPassword(loginRequestDTO.getPassword()).equals(user.getPassword())) throw new WrongCredentialsException();
 
@@ -110,32 +114,35 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
 
         if (editRequestDTO.getEmail() != null && !editRequestDTO.getEmail().isEmpty()) {
+            String normalizedEmail = editRequestDTO.getEmail().trim().toLowerCase();
             String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-            if (!editRequestDTO.getEmail().matches(emailRegex)) {
+            if (!normalizedEmail.matches(emailRegex)) {
                 throw new InvalidEmailFormatException();
             }
 
-            if (!editRequestDTO.getEmail().equals(user.getEmail()) &&
-                    userRepository.findByEmail(editRequestDTO.getEmail()).isPresent()) {
-                throw new EmailAlreadyExistsException(editRequestDTO.getEmail());
+            if (!normalizedEmail.equalsIgnoreCase(user.getEmail()) &&
+                    userRepository.findByEmail(normalizedEmail).isPresent()) {
+                throw new EmailAlreadyExistsException(normalizedEmail);
             }
 
             user.setEmail(editRequestDTO.getEmail());
         }
 
         if (editRequestDTO.getFirstName() != null && !editRequestDTO.getFirstName().isEmpty()) {
-            String cleanFirstName = editRequestDTO.getFirstName().replaceAll("[^a-zA-Z]", "");
-            if(cleanFirstName.isEmpty()) throw new InvalidInputFieldFormatException("First name");
-            if(cleanFirstName.length() > 50) throw new InputLimitExceededException("First name");
-
+            String cleanFirstName = editRequestDTO.getFirstName().trim();
+            if (!cleanFirstName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
+                throw new InvalidInputFieldFormatException("First name");
+            }
+            if (cleanFirstName.length() > 50) throw new InputLimitExceededException("First name");
             user.setFirstName(cleanFirstName);
         }
 
         if (editRequestDTO.getLastName() != null && !editRequestDTO.getLastName().isEmpty()) {
-            String cleanLastName = editRequestDTO.getLastName().replaceAll("[^a-zA-Z]", "");
-            if(cleanLastName.isEmpty()) throw new InvalidInputFieldFormatException("Last name");
-            if(cleanLastName.length() > 50) throw new InputLimitExceededException("Last name");
-
+            String cleanLastName = editRequestDTO.getLastName().trim();
+            if (!cleanLastName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
+                throw new InvalidInputFieldFormatException("Last name");
+            }
+            if (cleanLastName.length() > 50) throw new InputLimitExceededException("Last name");
             user.setLastName(cleanLastName);
         }
 
