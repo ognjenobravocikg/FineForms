@@ -2,7 +2,8 @@ package com.djokic.apigatewayauthserviceff.controller;
 
 import com.djokic.apigatewayauthserviceff.client.FormServiceClient;
 import com.djokic.apigatewayauthserviceff.client.UserServiceClient;
-import com.djokic.apigatewayauthserviceff.dto.*;
+import com.djokic.apigatewayauthserviceff.dto.formservicedto.CreateFormDto;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.*;
 import com.djokic.apigatewayauthserviceff.enumeration.CollaboratorRole;
 import com.djokic.apigatewayauthserviceff.services.AuthService;
 import com.djokic.apigatewayauthserviceff.services.JwtService;

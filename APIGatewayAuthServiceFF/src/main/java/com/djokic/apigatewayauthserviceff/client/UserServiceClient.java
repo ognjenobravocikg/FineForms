@@ -1,6 +1,6 @@
 package com.djokic.apigatewayauthserviceff.client;
 
-import com.djokic.apigatewayauthserviceff.dto.*;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

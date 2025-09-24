@@ -1,7 +1,6 @@
 package com.djokic.apigatewayauthserviceff.services;
 
-import com.djokic.apigatewayauthserviceff.dto.UserDTO;
-import com.djokic.apigatewayauthserviceff.dto.UserDetailsDTO;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.UserDetailsDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

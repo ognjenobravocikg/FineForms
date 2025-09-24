@@ -1,7 +1,10 @@
-package com.fineforms.backend.DTO;
+package com.djokic.apigatewayauthserviceff.dto.formservicedto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
-import lombok.*;
 
 @Data
 @AllArgsConstructor
@@ -19,5 +22,5 @@ public class QuestionDTO {
     private Integer minRequiredAnswers;
     private Integer maxAllowedAnswers;
     private List<Integer> numericValues;
-}
 
+}

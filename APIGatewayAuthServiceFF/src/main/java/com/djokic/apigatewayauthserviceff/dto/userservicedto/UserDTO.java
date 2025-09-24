@@ -1,4 +1,4 @@
-package com.djokic.apigatewayauthserviceff.dto;
+package com.djokic.apigatewayauthserviceff.dto.userservicedto;
 
 import com.djokic.apigatewayauthserviceff.enumeration.Role;
 import lombok.Builder;

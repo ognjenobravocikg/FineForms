@@ -1,22 +1,19 @@
 package com.djokic.apigatewayauthserviceff;
 
 import com.djokic.apigatewayauthserviceff.client.UserServiceClient;
-import com.djokic.apigatewayauthserviceff.dto.AuthResponseDTO;
-import com.djokic.apigatewayauthserviceff.dto.LoginRequestDTO;
-import com.djokic.apigatewayauthserviceff.dto.RegisterRequestDTO;
-import com.djokic.apigatewayauthserviceff.dto.UserDetailsDTO;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.AuthResponseDTO;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.LoginRequestDTO;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.RegisterRequestDTO;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.UserDetailsDTO;
 import com.djokic.apigatewayauthserviceff.enumeration.Role;
 import com.djokic.apigatewayauthserviceff.services.AuthService;
 import com.djokic.apigatewayauthserviceff.services.JwtService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 

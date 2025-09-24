@@ -1,7 +1,7 @@
 package com.djokic.apigatewayauthserviceff.services;
 
 import com.djokic.apigatewayauthserviceff.client.UserServiceClient;
-import com.djokic.apigatewayauthserviceff.dto.*;
+import com.djokic.apigatewayauthserviceff.dto.userservicedto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

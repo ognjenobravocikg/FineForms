@@ -1,6 +1,6 @@
 package com.djokic.apigatewayauthserviceff.client;
 
-import com.djokic.apigatewayauthserviceff.dto.CreateFormDto;
+import com.djokic.apigatewayauthserviceff.dto.formservicedto.CreateFormDto;
 import com.djokic.apigatewayauthserviceff.enumeration.CollaboratorRole;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.djokic.apigatewayauthserviceff.dto;
+package com.djokic.apigatewayauthserviceff.dto.userservicedto;
 
 import lombok.*;
 
