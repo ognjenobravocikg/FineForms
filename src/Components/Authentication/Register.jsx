@@ -34,6 +34,13 @@ export default function Register() {
 
       if (response.status === 201) {
         const data = await response.json();
+
+        // if backend sends back a token here, save it
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+
         setSuccess(`User ${data.email} registered successfully!`);
         setError("");
         navigate("/login");

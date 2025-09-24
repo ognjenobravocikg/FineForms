@@ -9,6 +9,8 @@ import Register from "./Components/Authentication/Register.jsx";
 import About from "./Components/About/About.jsx";
 import Profile from "./Components/Profile/Profile.jsx";
 import FormsPage from "./Components/My-Forms/FormsPage.jsx";
+import AdminPage from "./Components/Admin/AdminPage.jsx";
+import FormEditPage from "./Components/Forms/FormEditPage.jsx";
 
 /* ------------------ Layouts ------------------ */
 
@@ -73,6 +75,8 @@ export default function App() {
             </MainLayout>
           }
         />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/forms/:formId/edit" element={<FormEditPage />} />
 
         {/* Auth layout pages */}
         <Route

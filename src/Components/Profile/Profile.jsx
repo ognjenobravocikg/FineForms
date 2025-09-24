@@ -1,86 +1,97 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Replace with your backend endpoint
-    fetch("http://localhost:8080/api/users/me")
-      .then((res) => res.json())
-      .then((data) => setUser(data))
-      .catch((err) => console.error("Failed to fetch user:", err));
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (!token || !storedUser) {
+      setError("Not authenticated");
+      setLoading(false);
+      navigate("/login");
+      return;
+    }
+
+    const userObj = JSON.parse(storedUser);
+
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/users/${userObj.id}/details/`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch user");
+        const data = await response.json();
+        setUser(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
 
-  if (!user) {
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-gray-600 text-lg">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-3xl bg-white shadow-lg rounded-xl p-8">
-        {/* Header */}
-        <div className="flex items-center space-x-6 mb-6">
-          <img
-            src={user.avatarUrl || "/default-avatar.png"}
-            alt="User Avatar"
-            className="w-24 h-24 rounded-full border-2 border-gray-300 object-cover"
-          />
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              {user.firstName} {user.lastName}
-            </h2>
-            <p className="text-gray-500">{user.email}</p>
-          </div>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-8 text-center">
+        <img
+          src={`https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}`}
+          alt="Profile avatar"
+          className="w-24 h-24 rounded-full mx-auto mb-4"
+        />
+        <h2 className="text-2xl font-bold text-gray-800">
+          {user.firstName} {user.lastName}
+        </h2>
+        <p className="text-gray-500 mb-2">{user.email}</p>
+        <span className="text-sm text-blue-600 font-semibold mb-6 block">
+          Role: {user.role}
+        </span>
 
-        <hr className="my-6" />
-
-        {/* Info Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              Personal Info
-            </h3>
-            <p>
-              <span className="font-medium">First Name:</span> {user.firstName}
-            </p>
-            <p>
-              <span className="font-medium">Last Name:</span> {user.lastName}
-            </p>
-            <p>
-              <span className="font-medium">Role:</span> {user.role || "User"}
-            </p>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              Account
-            </h3>
-            <p>
-              <span className="font-medium">Email:</span> {user.email}
-            </p>
-            <p>
-              <span className="font-medium">Member since:</span>{" "}
-              {new Date(user.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-
-        <hr className="my-6" />
-
-        {/* Actions */}
-        <div className="flex space-x-4">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            Edit Profile
-          </button>
-          <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-            Log Out
-          </button>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

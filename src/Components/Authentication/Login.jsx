@@ -20,7 +20,15 @@ export default function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("user", JSON.stringify(data));
+
+        // ✅ Save JWT token
+        localStorage.setItem("token", data.token);
+
+        // Save user info if backend sends it
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+
         alert("Login successful!");
         navigate("/forms");
       } else {

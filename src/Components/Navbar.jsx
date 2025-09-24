@@ -1,6 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem("token");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   return (
     <nav className="bg-white shadow w-[100%]">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -39,12 +48,21 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <Link
-              to="/login"
-              className="hover:text-indigo-600 transition-colors"
-            >
-              Log Out
-            </Link>
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="hover:text-indigo-600 transition-colors"
+              >
+                Log Out
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="hover:text-indigo-600 transition-colors"
+              >
+                Log In
+              </Link>
+            )}
           </li>
         </ul>
       </div>

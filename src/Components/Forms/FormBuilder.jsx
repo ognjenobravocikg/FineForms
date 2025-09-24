@@ -1,11 +1,14 @@
 import { useState } from "react";
 import FormHeader from "./FormHeader";
 import QuestionCard from "./QuestionCard";
+import { useNavigate } from "react-router-dom";
 
 export default function FormBuilder() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState([]);
+
+  const navigate = useNavigate();
 
   const addQuestion = () => {
     setQuestions([

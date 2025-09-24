@@ -13,66 +13,43 @@ export default function FormsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const navigate = useNavigate();
-  const [selectedFeature, setSelectedFeature] = useState(1);
 
-  const handleAddQuestion = () => {
-    navigate("/forms");
-  };
   useEffect(() => {
     const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Not authenticated");
+        setLoading(false);
+        navigate("/login");
+        return;
+      }
+
       try {
-        /*
         const userRes = await fetch(
-          "http://localhost:8080/api/users/2/details/"
+          "http://localhost:8080/api/users/2/details/",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
         if (!userRes.ok) throw new Error("Failed to fetch user");
         const userData = await userRes.json();
         setUser(userData);
-        */
 
-        // Dummy forms
-        setForms([
-          {
-            id: 1,
-            title: "Customer Feedback Survey",
-            description: "Gather insights from customers",
+        // Fetch all users (for collaborators)
+        const usersRes = await fetch("http://localhost:8080/api/users/", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-          {
-            id: 2,
-            title: "Event Registration Form",
-            description: "Collect sign-ups for upcoming events",
-          },
-          {
-            id: 3,
-            title: "Bug Report Form",
-            description: "Track bugs and issues in your app",
-          },
-        ]);
+        });
 
-        // Dummy users (replace later with real API call: /api/users/)
-        setAllUsers([
-          {
-            id: 2,
-            email: "a@gmail.com",
-            firstName: "Alice",
-            lastName: "Smith",
-            role: "USER",
-          },
-          {
-            id: 3,
-            email: "b@gmail.com",
-            firstName: "Bob",
-            lastName: "Johnson",
-            role: "USER",
-          },
-          {
-            id: 8,
-            email: "a23@gmail.com",
-            firstName: "Charlie",
-            lastName: "Brown",
-            role: "USER",
-          },
-        ]);
+        if (!usersRes.ok) throw new Error("Failed to fetch users");
+        const usersData = await usersRes.json();
+        setAllUsers(usersData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -136,7 +113,7 @@ export default function FormsPage() {
               </h3>
               <p className="text-gray-600">{form.description}</p>
               <div className="flex gap-3 mt-3">
-                <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
                   Open Form
                 </button>
                 <button
@@ -151,15 +128,6 @@ export default function FormsPage() {
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="flex space-x-4 mt-6">
-          <button
-            onClick={handleAddQuestion}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-          >
-            + Add Question
-          </button>
         </div>
       </div>
 
@@ -189,7 +157,7 @@ export default function FormsPage() {
                     </p>
                     <p className="text-sm text-gray-500">{u.email}</p>
                   </div>
-                  <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                  <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
                     Add
                   </button>
                 </div>
@@ -201,7 +169,7 @@ export default function FormsPage() {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition"
               >
                 Close
               </button>
