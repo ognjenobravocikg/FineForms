@@ -38,7 +38,7 @@ public class CollaboratorController {
     }
 
     // Update collaborator role (only owner can call)
-    @PatchMapping("/{userId}")
+    @PostMapping("/{userId}/update-role")
     public ResponseEntity<Collaborator> updateRole(
             @PathVariable Long formId,
             @PathVariable Long userId,
