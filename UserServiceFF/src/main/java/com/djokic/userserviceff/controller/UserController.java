@@ -19,7 +19,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(
-            @Valid @RequestBody RegisterRequestDTO registerRequest){
+            @RequestBody RegisterRequestDTO registerRequest){
 
         UserDetailsDTO createdUser = userService.createUser(registerRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
@@ -32,10 +32,10 @@ public class UserController {
         return ResponseEntity.ok(loggedInUser);
     }
 
-    @PatchMapping("/edit/{id}")
+    @PostMapping("/edit/{id}")
     public ResponseEntity<?> editUser(
             @PathVariable Long id,
-            @Valid @RequestBody EditRequestDTO editRequest) {
+            @RequestBody EditRequestDTO editRequest) {
 
         UserDTO updatedUser = userService.updateUser(id, editRequest);
 
