@@ -64,11 +64,11 @@ public class UserService {
         String cleanFirstName = registerRequest.getFirstName().trim();
         String cleanLastName = registerRequest.getLastName().trim();
 
-        if (!cleanFirstName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
+        if (!cleanFirstName.matches("^[\\p{L}]+(?:[ \\p{Pd}'][\\p{L}]+)*$")) {
             throw new InvalidInputFieldFormatException("First name");
         }
 
-        if (!cleanLastName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
+        if (!cleanLastName.matches("^[\\p{L}]+(?:[ \\p{Pd}'][\\p{L}]+)*$")) {
             throw new InvalidInputFieldFormatException("Last name");
         }
 
@@ -130,7 +130,7 @@ public class UserService {
 
         if (editRequestDTO.getFirstName() != null && !editRequestDTO.getFirstName().isEmpty()) {
             String cleanFirstName = editRequestDTO.getFirstName().trim();
-            if (!cleanFirstName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
+            if (!cleanFirstName.matches("^[\\p{L}]+(?:[ \\p{Pd}'][\\p{L}]+)*$")) {
                 throw new InvalidInputFieldFormatException("First name");
             }
             if (cleanFirstName.length() > 50) throw new InputLimitExceededException("First name");
@@ -139,7 +139,7 @@ public class UserService {
 
         if (editRequestDTO.getLastName() != null && !editRequestDTO.getLastName().isEmpty()) {
             String cleanLastName = editRequestDTO.getLastName().trim();
-            if (!cleanLastName.matches("^[\\p{L}]+(?:\\s[\\p{L}]+)*$")) {
+            if (!cleanLastName.matches("^[\\p{L}]+(?:[ \\p{Pd}'][\\p{L}]+)*$")) {
                 throw new InvalidInputFieldFormatException("Last name");
             }
             if (cleanLastName.length() > 50) throw new InputLimitExceededException("Last name");
