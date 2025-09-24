@@ -43,7 +43,9 @@ public class AuthService implements UserDetailsService {
     }
 
     public UserDTO editUser(Long id, EditRequestDTO request) {
-        return userClient.editUser(id, request);
+        UserDTO editedUser = userClient.editUser(id, request);
+
+        return editedUser;
     }
 
     public List<UserDTO> getAllUsers() {

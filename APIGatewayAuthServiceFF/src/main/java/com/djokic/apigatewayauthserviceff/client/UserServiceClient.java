@@ -15,7 +15,7 @@ public interface UserServiceClient {
     @PostMapping("/users/login")
     UserDetailsDTO login(@RequestBody LoginRequestDTO loginRequest);
 
-    @PatchMapping("/users/edit/{id}")
+    @PostMapping("/users/edit/{id}")
     UserDTO editUser(@PathVariable("id") Long id, @RequestBody EditRequestDTO editRequest);
 
     @GetMapping("/users/{id}/details")

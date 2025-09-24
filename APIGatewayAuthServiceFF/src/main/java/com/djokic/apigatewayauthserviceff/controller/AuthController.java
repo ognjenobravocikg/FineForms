@@ -31,6 +31,12 @@ public class AuthController {
                 .body(authResponseDTO);
     }
 
+    @GetMapping("/users/{id}/details")
+    public ResponseEntity<?> getUserDetailsById(@PathVariable("id") Long id){
+        UserDetailsDTO userDetailsDTO = userServiceClient.getUserDetailsById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(userDetailsDTO);
+    }
+
     @PostMapping("/users/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO){
         AuthResponseDTO authResponseDTO = authService.login(loginRequestDTO);
@@ -40,7 +46,13 @@ public class AuthController {
                 .body(authResponseDTO);
     }
 
-    @PatchMapping("/users/{id}")
+    @GetMapping("/users/{email}")
+    public ResponseEntity<?> getUserDetailsByEmail(@PathVariable("email") String email){
+        UserDetailsDTO userDetailsDTO = userServiceClient.getUserDetailsByEmail(email);
+        return ResponseEntity.status(HttpStatus.OK).body(userDetailsDTO);
+    }
+
+    @PostMapping("/users/edit/{id}")
     public ResponseEntity<?> editUser(
             @PathVariable Long id,
             @RequestBody EditRequestDTO editRequestDTO,
@@ -62,7 +74,7 @@ public class AuthController {
                     ));
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(authService.editUser(id, editRequestDTO));
+        return ResponseEntity.ok(authService.editUser(id, editRequestDTO));
     }
 
     @GetMapping("/users")
