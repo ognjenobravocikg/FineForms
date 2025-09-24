@@ -21,9 +21,12 @@ public List<Collaborator> getCollaboratorsByForm(Long formId) {
     return collaboratorRepository.findByFormId(formId);
 }
 
-public Collaborator addCollaborator(Long formId, Long userId, CollaboratorRole role) {
+public Collaborator addCollaborator(Long formId, Long userId, CollaboratorRole role, Long currentUserId) {
     var form = formRepository.findById(formId)
             .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+    if (!form.getOwnerId().equals(currentUserId)) {
+        throw new SecurityException("Only the owner can add collaborators.");
+    }
     Collaborator collaborator = Collaborator.builder()
         .form(form)
         .userId(userId)
@@ -32,11 +35,11 @@ public Collaborator addCollaborator(Long formId, Long userId, CollaboratorRole r
 
     return collaboratorRepository.save(collaborator);
 }
-    public void removeCollaborator(Long formId, Long userId, Long ownerId) {
+    public void removeCollaborator(Long formId, Long userId, Long currentUserId) {
         var form = formRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
 
-        if (!form.getOwnerId().equals(ownerId)) {
+        if (!form.getOwnerId().equals(currentUserId)) {
             throw new SecurityException("Only the owner can remove collaborators.");
         }
 
@@ -45,12 +48,12 @@ public Collaborator addCollaborator(Long formId, Long userId, CollaboratorRole r
 
         collaboratorRepository.delete(collaborator);
     }
-    public Collaborator updateCollaboratorRole(Long formId, Long userId, CollaboratorRole role, Long ownerId) {
+    public Collaborator updateCollaboratorRole(Long formId, Long userId, CollaboratorRole role, Long currentUserId) {
         var form = formRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
 
         // Check if ownerId matches the form owner
-        if (!form.getOwnerId().equals(ownerId)) {
+        if (!form.getOwnerId().equals(currentUserId)) {
             throw new SecurityException("Only the owner can update collaborator roles.");
         }
 

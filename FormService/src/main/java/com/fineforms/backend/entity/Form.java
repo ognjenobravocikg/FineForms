@@ -30,7 +30,7 @@ public class Form {
     private List<Question> questions = new ArrayList<>();
 
     @ManyToMany
-    private List<CollaboratorDto> collaborators;
+    private List<Collaborator> collaborators;
 
     public void addQuestion(Question q) {
         q.setForm(this);
