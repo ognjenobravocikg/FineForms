@@ -4,10 +4,14 @@ import com.fineforms.backend.DTO.CreateFormDto;
 import com.fineforms.backend.DTO.CreateQuestionDto;
 import com.fineforms.backend.DTO.FormDTO;
 import com.fineforms.backend.DTO.OptionDto;
+import com.fineforms.backend.entity.Collaborator;
 import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.entity.Question;
 import com.fineforms.backend.entity.Option;
+import com.fineforms.backend.enums.CollaboratorRole;
+import com.fineforms.backend.repo.CollaboratorRepository;
 import com.fineforms.backend.repo.FormRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,14 +20,17 @@ import com.fineforms.backend.exceptions.*;
 import com.fineforms.backend.client.UserServiceClient;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class FormService {
 
     private final FormRepository formRepository;
     private final FormMapper formMapper;
     private final UserServiceClient userServiceClient;
-
+    private final CollaboratorService collaboratorService;
+    private final CollaboratorRepository collaboratorRepository;
 
     @Transactional
     public Form createForm(CreateFormDto dto) {
@@ -59,11 +66,6 @@ public class FormService {
         }
         return formRepository.save(f);
     }
-    @Autowired
-    public FormService(FormRepository formRepository, FormMapper formMapper) {
-        this.formRepository = formRepository;
-        this.formMapper = formMapper;
-    }
 
     public FormDTO getPublicForm(Long id) {
         Form form = formRepository.findById(id)
@@ -83,8 +85,14 @@ public class FormService {
     }
 
     @Transactional
-    public Form updateForm(Long id, CreateFormDto dto) {
+    public Form updateForm(Long id, CreateFormDto dto, Long currentUserId) {
         Form f = getForm(id);
+        Optional<Collaborator> collab = collaboratorRepository.findByFormIdAndUserId(id, currentUserId);
+        if(!f.getOwnerId().equals(currentUserId) || (
+                collab.isPresent() && collab.get().getRole()== CollaboratorRole.EDITOR
+        )) {
+            throw new NotAuthorizedException("Only the owner can update the form.");
+        }
         f.setTitle(dto.getTitle());
         f.setDescription(dto.getDescription());
         f.setRequiresAuth(dto.isRequiresAuth());
@@ -92,7 +100,12 @@ public class FormService {
     }
 
     @Transactional
-    public void deleteForm(Long id) {
+    public void deleteForm(Long id, Long currentUserId) {
+        Form f = getForm(id);
+        if(!f.getOwnerId().equals(currentUserId)) {
+            throw new NotAuthorizedException("Only the owner can delete the form.");
+        }
+
         formRepository.deleteById(id);
     }
     @Transactional

@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class CreateFormDto {
     private Long id; //form ID, null for new form
     private String title;

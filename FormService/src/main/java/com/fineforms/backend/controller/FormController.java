@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/forms")
+@RequestMapping("/form")
 public class FormController {
     private final FormService formService;
 
@@ -35,13 +35,14 @@ public class FormController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Form> updateForm(@PathVariable Long id, @RequestBody CreateFormDto dto) {
-        return ResponseEntity.ok(formService.updateForm(id, dto));
+    public ResponseEntity<Form> updateForm(@PathVariable Long id, @RequestBody CreateFormDto dto, @RequestParam("userId") Long currentUserId) {
+
+        return ResponseEntity.ok(formService.updateForm(id, dto, currentUserId));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteForm(@PathVariable Long id) {
-        formService.deleteForm(id);
+    public ResponseEntity<Void> deleteForm(@PathVariable Long id, @RequestParam("userId") Long currentUserId) {
+        formService.deleteForm(id, currentUserId);
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/public/{id}")

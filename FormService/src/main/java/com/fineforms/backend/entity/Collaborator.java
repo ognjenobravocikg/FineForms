@@ -1,5 +1,6 @@
 package com.fineforms.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fineforms.backend.enums.CollaboratorRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,6 +21,7 @@ public class Collaborator {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "form_id", nullable = false)
+    @JsonIgnore
     private Form form;
 
     @Column(nullable = false)

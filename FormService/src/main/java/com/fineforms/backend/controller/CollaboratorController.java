@@ -2,7 +2,6 @@ package com.fineforms.backend.controller;
 
 import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.service.FormService;
-import com.fineforms.backend.DTO.CreateFormDto;
 import com.fineforms.backend.entity.Collaborator;
 import com.fineforms.backend.service.CollaboratorService;
 import com.fineforms.backend.enums.CollaboratorRole;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/forms/{formId}/collab")
+@RequestMapping("/form/{formId}/collab")
 @RequiredArgsConstructor
 public class CollaboratorController {
     private final FormService formService;
@@ -25,10 +24,11 @@ public class CollaboratorController {
     @PostMapping
     public ResponseEntity<Collaborator> addCollaborator(
             @PathVariable Long formId,
-            @RequestBody Long userId,
-            @RequestParam CollaboratorRole role
+            @RequestParam Long userId,
+            @RequestParam CollaboratorRole role,
+            @RequestParam Long currentUserId
     ) {
-        return ResponseEntity.ok(collaboratorService.addCollaborator(formId, userId, role));
+        return ResponseEntity.ok(collaboratorService.addCollaborator(formId, userId, role, currentUserId));
     }
 
     // Get all collaborators for a form
@@ -43,9 +43,9 @@ public class CollaboratorController {
             @PathVariable Long formId,
             @PathVariable Long userId,
             @RequestParam CollaboratorRole role,
-            @RequestParam Long ownerId
+            @RequestParam("currentUserId") Long currentUserId
     ) {
-        return ResponseEntity.ok(collaboratorService.updateCollaboratorRole(formId, userId, role, ownerId));
+        return ResponseEntity.ok(collaboratorService.updateCollaboratorRole(formId, userId, role, currentUserId));
     }
 
     // Remove collaborator (only owner can call)
@@ -53,9 +53,9 @@ public class CollaboratorController {
     public ResponseEntity<Void> removeCollaborator(
             @PathVariable Long formId,
             @PathVariable Long userId,
-            @RequestParam Long ownerId
+            @RequestParam Long currentUserId
     ) {
-        collaboratorService.removeCollaborator(formId, userId, ownerId);
+        collaboratorService.removeCollaborator(formId, userId, currentUserId);
         return ResponseEntity.noContent().build();
     }
 }

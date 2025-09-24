@@ -6,11 +6,11 @@ import com.fineforms.backend.DTO.FormDTO;
 import com.fineforms.backend.entity.Form;
 
 
-@Mapper(componentModel = "spring")
+
+@Mapper(componentModel = "spring", uses = { QuestionMapper.class })
 public interface FormMapper {
     FormDTO toDto(Form form);
 
-    @Mapping(target = "questions", ignore = true)
     Form toEntity(FormDTO formDto);
 }
 

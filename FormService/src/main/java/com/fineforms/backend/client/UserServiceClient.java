@@ -1,20 +1,13 @@
 package com.fineforms.backend.client;
 
-import com.djokic.apigatewayauthserviceff.dto.*;
+import com.fineforms.backend.DTO.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.cloud.openfeign.FeignClient;
+
+import java.util.List;
 
 @FeignClient(name = "user-service", url = "${user.service.url}")
-public class UserServiceClient {
-    @PostMapping("/users/register")
-    UserDetailsDTO register(@RequestBody RegisterRequestDTO registerRequest);
-
-    @PostMapping("/users/login")
-    UserDetailsDTO login(@RequestBody LoginRequestDTO loginRequest);
-
-    @PatchMapping("/users/edit/{id}")
-    UserDTO editUser(@PathVariable("id") Long id, @RequestBody EditRequestDTO editRequest);
+public interface UserServiceClient {
 
     @GetMapping("/users/{id}/details")
     UserDetailsDTO getUserDetailsById(@PathVariable("id") Long id);
@@ -25,6 +18,4 @@ public class UserServiceClient {
     @GetMapping("/users/")
     List<UserDTO> getAllUsers();
 
-    @PatchMapping("/users/change-role/{id}")
-    UserDTO changeUserRole(@PathVariable("id") Long id);
 }
