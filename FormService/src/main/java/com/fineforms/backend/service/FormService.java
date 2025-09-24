@@ -2,13 +2,18 @@ package com.fineforms.backend.service;
 
 import com.fineforms.backend.DTO.CreateFormDto;
 import com.fineforms.backend.DTO.CreateQuestionDto;
+import com.fineforms.backend.DTO.FormDTO;
 import com.fineforms.backend.DTO.OptionDto;
 import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.entity.Question;
 import com.fineforms.backend.entity.Option;
 import com.fineforms.backend.repo.FormRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fineforms.backend.mappers.FormMapper;
+import com.fineforms.backend.exceptions.*;
+import com.fineforms.backend.client.UserServiceClient;
 
 import java.util.List;
 
@@ -16,10 +21,9 @@ import java.util.List;
 public class FormService {
 
     private final FormRepository formRepository;
+    private final FormMapper formMapper;
+    private final UserServiceClient userServiceClient;
 
-    public FormService(FormRepository formRepository){
-        this.formRepository = formRepository;
-    }
 
     @Transactional
     public Form createForm(CreateFormDto dto) {
@@ -54,6 +58,22 @@ public class FormService {
             }
         }
         return formRepository.save(f);
+    }
+    @Autowired
+    public FormService(FormRepository formRepository, FormMapper formMapper) {
+        this.formRepository = formRepository;
+        this.formMapper = formMapper;
+    }
+
+    public FormDTO getPublicForm(Long id) {
+        Form form = formRepository.findById(id)
+                .orElseThrow(() -> new FormNotFoundException(id));
+
+        if (form.isRequiresAuth()) {
+            throw new FormNotPublicException(id);
+        }
+
+        return formMapper.toDto(form);
     }
     public Form getForm(Long formId) {
         return formRepository.findById(formId).orElseThrow(() -> new IllegalArgumentException("Form not found: " + formId) );

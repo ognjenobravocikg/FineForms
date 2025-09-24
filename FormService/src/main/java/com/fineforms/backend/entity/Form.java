@@ -1,5 +1,6 @@
 package com.fineforms.backend.entity;
 
+import com.fineforms.backend.DTO.CollaboratorDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +28,9 @@ public class Form {
 
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
+
+    @ManyToMany
+    private List<CollaboratorDto> collaborators;
 
     public void addQuestion(Question q) {
         q.setForm(this);

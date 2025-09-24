@@ -32,10 +32,32 @@ public Collaborator addCollaborator(Long formId, Long userId, CollaboratorRole r
 
     return collaboratorRepository.save(collaborator);
 }
-public void removeCollaborator(Long collaboratorId) {
-    if (!collaboratorRepository.existsById(collaboratorId)) {
-        throw new EntityNotFoundException("Collaborator not found: " + collaboratorId);
+    public void removeCollaborator(Long formId, Long userId, Long ownerId) {
+        var form = formRepository.findById(formId)
+                .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+
+        if (!form.getOwnerId().equals(ownerId)) {
+            throw new SecurityException("Only the owner can remove collaborators.");
+        }
+
+        var collaborator = collaboratorRepository.findByFormIdAndUserId(formId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Collaborator not found for user: " + userId));
+
+        collaboratorRepository.delete(collaborator);
     }
-    collaboratorRepository.deleteById(collaboratorId);
-}
+    public Collaborator updateCollaboratorRole(Long formId, Long userId, CollaboratorRole role, Long ownerId) {
+        var form = formRepository.findById(formId)
+                .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+
+        // Check if ownerId matches the form owner
+        if (!form.getOwnerId().equals(ownerId)) {
+            throw new SecurityException("Only the owner can update collaborator roles.");
+        }
+
+        var collaborator = collaboratorRepository.findByFormIdAndUserId(formId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Collaborator not found for user: " + userId));
+
+        collaborator.setRole(role);
+        return collaboratorRepository.save(collaborator);
+    }
 }
