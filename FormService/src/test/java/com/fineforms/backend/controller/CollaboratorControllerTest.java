@@ -90,7 +90,7 @@ class CollaboratorControllerTest {
         when(collaboratorService.updateCollaboratorRole(eq(1L), eq(2L), eq(CollaboratorRole.VIEWER), eq(1L)))
                 .thenReturn(collaborator);
 
-        mockMvc.perform(patch("/form/1/collab/2")
+        mockMvc.perform(post("/form/1/collab/2/update-role")
                         .param("role", "VIEWER")
                         .param("currentUserId", "1"))
                 .andExpect(status().isOk())
