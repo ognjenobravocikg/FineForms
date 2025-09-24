@@ -5,7 +5,7 @@ Test_Cases - UserService
 
 # Register
 
-System: FormApp (User-Service @ http://localhost:8070/api/users/register),
+System: FineForms (User-Service @ http://localhost:8070/api/users/register),
 Environment: Docker local (Postgres 15, User-Service 8070)
 
 #### TestCase - Scenario - Expected - Result- {code} - API response
@@ -56,7 +56,7 @@ Environment: Docker local (Postgres 15, User-Service 8070)
 
 # Login
 
-System: FormApp (User-Service @ http://localhost:8070/api/users/login),
+System: FineForms (User-Service @ http://localhost:8070/api/users/login),
 Environment: Docker local (Postgres 15, User-Service 8070)
 
 #### TestCase - Scenario - Expected - Result- {code} - API response
@@ -89,7 +89,7 @@ Environment: Docker local (Postgres 15, User-Service 8070)
 
 ### ChangeRole ( TestCase - Scenario - Expected - Result - Request - Response)
 
-System: FormApp (User-Service @ http://localhost:8070/users/change-role/USER_ID),
+System: FineForms (User-Service @ http://localhost:8070/users/change-role/USER_ID),
 Environment: Docker local (Postgres 15, User-Service 8070)
 
 **1)** TC01 - Change role from USER to ADMIN - 200 - 200 - **localhost:8070/users/change-role/3** - **{"id": 3, "email": "qa_user1@gmail.com", "firstName": "QA", "lastName": "UserOne", "role": "ADMIN"}**
@@ -115,7 +115,7 @@ Response after GET:
 
 ### Update ( TestCase - Scenario - Expected - Result - {code} - Response)
 
-System: FormApp (User-Service @ http://localhost:8070/users/edit/USER_ID),
+System: FineForms (User-Service @ http://localhost:8070/users/edit/USER_ID),
 Environment: Docker local (Postgres 15, User-Service 8070)
 
 **1)** TC01 - Update firstName only - 200 - 200 - **{ "email": "qa_user1@gmail.com", "password": "", "firstName": "UpdatedFirstName", "lastName": "" }** - **{"id":3,"email":"qa_user1@gmail.com","firstName":"UpdatedFirstName", "lastName": "UserOne", "role": "USER"}**
