@@ -1,14 +1,12 @@
 package com.djokic.apigatewayauthserviceff.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Data
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class RegisterRequestDTO {
     private String email;
     private String password;
