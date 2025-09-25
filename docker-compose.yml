@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  api-gateway-auth-service:
+    build:
+      context: ./APIGatewayAuthServiceFF
+      dockerfile: Dockerfile
+    container_name: api-gateway-auth-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  form-service:
+    build:
+      context: ./FormService
+      dockerfile: Dockerfile
+    container_name: form-service
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  response-service:
+    build:
+      context: ./ResponseServiceFF
+      dockerfile: Dockerfile
+    container_name: response-service
+    ports:
+      - "8082:8080"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  user-service:
+    build:
+      context: ./UserServiceFF
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "8083:8080"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
+
