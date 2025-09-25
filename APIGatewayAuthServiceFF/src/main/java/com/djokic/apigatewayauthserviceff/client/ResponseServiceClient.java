@@ -5,7 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "response-service", url = "${response.service.url")
+@FeignClient(name = "response-service", url = "${response.service.url}")
 public interface ResponseServiceClient {
 
     @GetMapping("/response/{formId}")

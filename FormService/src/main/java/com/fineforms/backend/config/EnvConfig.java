@@ -1,4 +1,4 @@
-package com.djokic.userserviceff.config;
+package com.fineforms.backend.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

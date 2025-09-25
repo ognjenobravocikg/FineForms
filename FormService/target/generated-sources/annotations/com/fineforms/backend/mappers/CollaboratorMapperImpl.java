@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-09-24T19:34:05+0200",
-    comments = "version: 1.6.3, compiler: javac, environment: Java 23-valhalla (Oracle Corporation)"
+    date = "2025-09-25T18:59:21+0200",
+    comments = "version: 1.6.3, compiler: javac, environment: Java 23 (Oracle Corporation)"
 )
 @Component
 public class CollaboratorMapperImpl implements CollaboratorMapper {
