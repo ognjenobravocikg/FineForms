@@ -131,3 +131,62 @@ Environment: Docker local (Postgres 15, User-Service 8070)
 **5)** TC05 - Update name to name with **invalid** special characters - 400 - 400 - **{ "email": "qa_user2@mail.com", "password": "", "firstName": "!#@$", "lastName": "Živković" }** - **{"error": "Bad Request", "message": "Invalid input field First name", "status": 400}**
 
 **6)** TC06 - Update email to an already existing email - 409 - 409 - USER_ID = 50 - **{ "email": "qa_user2@gmail.com", "password": "", "firstName": "QA", "lastName": "UserTwo" }** - **{"error": "Conflict", "message": "User with email qa_user2@gmail.com already exists", "status": 409}**
+
+# Test_Cases - FormService
+
+## Create
+
+System: FineForms (Form-Service @ http://localhost:8060/form),
+Environment: Docker local (Postgres 15, Form-Service 8060)
+
+### TestCase - Scenario - Expected - Result- {code} - Response
+
+**1)** TC01 - Valid create form - 201 - 201 - **{"ownerId": 2, "title": "Druga test forma", "description": "Ovo je forma drugog vlasnika", "requiresAuth": true, "questions": [{"text": "Koji je vaš email?", "type": "email", "required": true}]}** - 
+**[{"id": 1, "ownerId": 2, "title": "Druga test forma", "description": "Ovo je forma drugog vlasnika", "requiresAuth": true, "questions": [{"id": 1, "text": "Koji je vaš email?", "requiredQuestion": true, "type": "email", "position": 0, "imageUrl": null, "numberMin": 0, "numberMax": 0, "numberStep": 0, "options": []}], "collaborators": []}]**
+
+**2)** TC02 - Create form without title - 201 - 201 - **{"ownerId": 2, "title": "", "description": "Forma bez naslova" , "requiresAuth": true, "questions": []}** - **{"id": 2, "ownerId": 2, "title": "Untitled Form", "description": "Forma bez naslova", "requiresAuth": true, "questions": [], "collaborators": null}**
+
+**3)** TC03 - Create form with invalid question type - 400 - **201** - **{"ownerId": 2, "title": "Forma sa losim tipom", "description": "Ovo je forma loseg tipa odgovora", "requiresAuth": true, "questions": [{"text": "Koliko imate godina?", "type": "numbeerrr", "required": true}]}** - 
+**[{"id": 1, "ownerId": 2, "title": "Forma sa losim tipom", "description": "Ovo je forma loseg tipa odgovora", "requiresAuth": true, "questions": [{"id": 1, "text": "Koliko imate godina?", "requiredQuestion": true, "type": "numbeerrr", "position": 0, "imageUrl": null, "numberMin": 0, "numberMax": 0, "numberStep": 0, "options": []}], "collaborators": []}]**
+
+**Backend developer team notified**: Form successfully created with **type: "numbeerrr"** when only **type: "number"** for this field should be acceptable.
+
+**4)** TC04 - Create form with non-existing owner - 403 - 403 - **{"ownerId": 2, "title": "Koje je vaše ime?", "description": "OwnerId ne postoji", "requiresAuth": true, "questions": [{"text": "Kako se zovete?", "type": "text", "required": true}]}** - **{"status": 403, "error": "Forbidden", "message": "Invalid ownerId", "path": "/form"}**
+
+**5)** TC05 - Create form without provided ownerId - 201 - 201 (ownerId set to request creating userId[1]) - **{"ownerId": "", "title": "Prazan ownerId", "description": "OwnerId polje je prazno", "requiresAuth": true, "questions": [{"text": "Koja Vam je omiljena boja?", "type": "text", "required": true}]}** - 
+**[{"id": 1, "ownerId": 1, "title": "Prazan ownerId", "description": "OwnerId polje je prazno", "requiresAuth": true, "questions": [{"id": 1, "text": "Prazan ownerId", "requiredQuestion": true, "type": "numbeerrr", "position": 0, "imageUrl": null, "numberMin": 0, "numberMax": 0, "numberStep": 0, "options": []}], "collaborators": []}]**
+
+## Update
+
+System: FineForms (Form-Service @ http://localhost:8060/form/1?userId),
+Environment: Docker local (Postgres 15, Form-Service 8060)
+
+### TestCase - Scenario - Expected - Result- {code} - Response
+
+**1)** TC01 - Valid update form - 200 - 200 - **{"ownerId": 1, "title": "AŽURIRANI NASLOV FORME", "description": "Ovo je ažurirani opis", "requiresAuth": true}** - 
+**[{"id": 1, "ownerId": 1, "title": "AŽURIRANI NASLOV FORME", "description": "Ovo je ažurirani opis", "requiresAuth": true, "questions": [{"id": 1, "text": "Koja Vam je omiljena boja?", "requiredQuestion": true, "type": "text", "position": 0, "imageUrl": null, "numberMin": 0, "numberMax": 0, "numberStep": 0, "options": []}], "collaborators": []}]**
+
+**2)** TC02 - Update ownerId - 200 - 200 - **{"ownerId": 5, "title": "AŽURIRANI NASLOV FORME", "description": "Ovo je ažurirani opis", "requiresAuth": true}** - 
+**[{"id": 1, "ownerId": 1, "title": "AŽURIRANI NASLOV FORME", "description": "Ovo je ažurirani opis", "requiresAuth": true, "questions": [{"id": 1, "text": "Koja Vam je omiljena boja?", "requiredQuestion": true, "type": "text", "position": 0, "imageUrl": null, "numberMin": 0, "numberMax": 0, "numberStep": 0, "options": []}], "collaborators": []}]**
+
+**Backend developer team notified**: Form successfully updated, however, "ownerId" never gets updated to a value that's not provided in request parameter **userId** : localhost:8060/form/1?**userId**.
+
+**3)** TC03 - Update form tittle to empty tittle - 200 - 200 - **{"ownerId": "1", "title": "", "description": "Ovo je ažurirani opis", "requiresAuth": true}** - 
+**{"id": 2, "ownerId": 1, "title": "", "description": "Ovo je ažurirani opis", "requiresAuth": true, "questions": [{"id": 2, "text": "Koja Vam je omiljena boja?", "requiredQuestion": true, "type": "text", "position": 0, "imageUrl": null, "numberMin": 0, "numberMax": 0, "numberStep": 0, "options": []}], "collaborators": []}**
+
+**Backend developer team notified**: Form successfully updated, however, **tittle** should remain as it was prior to the update **(AŽURIRANI NASLOV FORME)**.
+
+
+## Delete
+
+System: FineForms (Form-Service @ http://localhost:8060/form/1?userId),
+Environment: Docker local (Postgres 15, Form-Service 8060)
+
+### TestCase - Scenario - Expected - Result- Request - Response
+
+**1)** TC01 - Valid form delete - 200 - 200 - **localhost:8060/form/1?userId=1** - {}
+
+**2)** TC02 - Form delete, current session userId different from ownerId - 403 - 403 - **localhost:8060/form/2?userId=534** - **{"status": 403, "error": "Forbidden", "message": "Only the owner can delete the form.", "path": "/form/2"}**
+
+**3)** TC03 - Delete form with wrong formId - 500 - 500 - **localhost:8060/form/4?userId=534** - **{"status": 500, "error": "Internal Server Error", "message": "Form not found: 4", "path": "/form/4"}**
+
