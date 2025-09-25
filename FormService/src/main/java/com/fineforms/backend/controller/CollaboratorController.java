@@ -25,10 +25,10 @@ public class CollaboratorController {
     public ResponseEntity<Collaborator> addCollaborator(
             @PathVariable Long formId,
             @RequestParam Long userId,
-            @RequestParam CollaboratorRole role,
+            @RequestParam CollaboratorRole collaboratorRole,
             @RequestParam Long currentUserId
     ) {
-        return ResponseEntity.ok(collaboratorService.addCollaborator(formId, userId, role, currentUserId));
+        return ResponseEntity.ok(collaboratorService.addCollaborator(formId, userId, collaboratorRole, currentUserId));
     }
 
     // Get all collaborators for a form

@@ -3,6 +3,7 @@ package com.djokic.apigatewayauthserviceff.controller;
 import com.djokic.apigatewayauthserviceff.client.FormServiceClient;
 import com.djokic.apigatewayauthserviceff.client.ResponseServiceClient;
 import com.djokic.apigatewayauthserviceff.client.UserServiceClient;
+import com.djokic.apigatewayauthserviceff.dto.formservicedto.AddCollaboratorDTO;
 import com.djokic.apigatewayauthserviceff.dto.formservicedto.CreateFormDto;
 import com.djokic.apigatewayauthserviceff.dto.responseservicedto.CreateResponseDTO;
 import com.djokic.apigatewayauthserviceff.dto.userservicedto.*;
@@ -138,17 +139,16 @@ public class AuthController {
 
     @PostMapping("/form/{formId}/collab")
     ResponseEntity<?> addCollaborator(@PathVariable("formId") Long formId,
-                                      @RequestParam Long userId,
-                                      @RequestParam CollaboratorRole collaboratorRole,
+                                      @RequestBody AddCollaboratorDTO addCollaboratorDto,
                                       @RequestHeader("Authorization") String authHeader){
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String token = authHeader.substring(7);
-        Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
+        Long currentUserId = jwtService.extractAllClaims(token).get("id", Long.class);
 
-        return formServiceClient.addCollaborator(formId, userId, collaboratorRole, userIdFromToken);
+        return formServiceClient.addCollaborator(formId, addCollaboratorDto.getUserId(), addCollaboratorDto.getRole(), currentUserId);
     }
 
     @GetMapping("/form/{formId}/collab")

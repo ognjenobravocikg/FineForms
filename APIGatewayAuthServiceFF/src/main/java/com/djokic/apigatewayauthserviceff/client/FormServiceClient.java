@@ -31,7 +31,7 @@ public interface FormServiceClient {
     ResponseEntity<?> addCollaborator(@PathVariable("formId") Long formId,
                                       @RequestParam Long userId,
                                       @RequestParam CollaboratorRole collaboratorRole,
-                                      @RequestParam("userId") Long currentUserId);
+                                      @RequestParam Long currentUserId);
 
     @GetMapping("/form/{formId}/collab")
     ResponseEntity<?> getCollaborators(@PathVariable("formId") Long formId);
