@@ -18,8 +18,6 @@ public class CollaboratorController {
     private final FormService formService;
     private final CollaboratorService collaboratorService;
 
-
-
     // Add collaborator to form
     @PostMapping
     public ResponseEntity<Collaborator> addCollaborator(
@@ -59,4 +57,3 @@ public class CollaboratorController {
         return ResponseEntity.noContent().build();
     }
 }
-

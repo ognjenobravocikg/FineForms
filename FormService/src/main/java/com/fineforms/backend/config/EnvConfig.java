@@ -20,9 +20,9 @@ public class EnvConfig {
     @Bean
     public DataSource dataSource(Dotenv dotenv) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(dotenv.get("USER_DB_URL"));
-        config.setUsername(dotenv.get("USER_DB_USERNAME"));
-        config.setPassword(dotenv.get("USER_DB_PASSWORD"));
+        config.setJdbcUrl(dotenv.get("FORMS_DB_URL"));
+        config.setUsername(dotenv.get("FORMS_DB_USERNAME"));
+        config.setPassword(dotenv.get("FORMS_DB_PASSWORD"));
         config.setDriverClassName("org.postgresql.Driver");
         return new HikariDataSource(config);
     }
