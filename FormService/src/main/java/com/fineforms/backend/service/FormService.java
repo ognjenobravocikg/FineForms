@@ -33,7 +33,11 @@ public class FormService {
     private final CollaboratorRepository collaboratorRepository;
 
     @Transactional
-    public Form createForm(CreateFormDto dto) {
+    public Form createForm(CreateFormDto dto, Long currentUserId) {
+        if(dto.getOwnerId() == null || !dto.getOwnerId().equals(currentUserId)) {
+            dto.setOwnerId(currentUserId);
+        }
+
         Form f = new Form();
         f.setOwnerId(dto.getOwnerId());
         f.setTitle(dto.getTitle());
@@ -89,7 +93,7 @@ public class FormService {
         Form f = getForm(id);
         Optional<Collaborator> collab = collaboratorRepository.findByFormIdAndUserId(id, currentUserId);
         if(!f.getOwnerId().equals(currentUserId) || (
-                collab.isPresent() && collab.get().getRole()== CollaboratorRole.EDITOR
+                collab.isPresent() && collab.get().getRole()==CollaboratorRole.EDITOR
         )) {
             throw new NotAuthorizedException("Only the owner can update the form.");
         }

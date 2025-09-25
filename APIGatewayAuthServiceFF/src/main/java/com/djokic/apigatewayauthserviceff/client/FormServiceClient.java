@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 public interface FormServiceClient {
 
     @PostMapping("/form")
-    ResponseEntity<?> createForm(@RequestBody CreateFormDto createFormDto);
+    ResponseEntity<?> createForm(@RequestBody CreateFormDto createFormDto, @RequestParam("userId") Long userId);
 
     @GetMapping("/form/{id}")
     ResponseEntity<?> getFormById(@PathVariable("id") Long id);

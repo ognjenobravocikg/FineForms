@@ -1,8 +1,10 @@
 package com.djokic.apigatewayauthserviceff.controller;
 
 import com.djokic.apigatewayauthserviceff.client.FormServiceClient;
+import com.djokic.apigatewayauthserviceff.client.ResponseServiceClient;
 import com.djokic.apigatewayauthserviceff.client.UserServiceClient;
 import com.djokic.apigatewayauthserviceff.dto.formservicedto.CreateFormDto;
+import com.djokic.apigatewayauthserviceff.dto.responseservicedto.CreateResponseDTO;
 import com.djokic.apigatewayauthserviceff.dto.userservicedto.*;
 import com.djokic.apigatewayauthserviceff.enumeration.CollaboratorRole;
 import com.djokic.apigatewayauthserviceff.services.AuthService;
@@ -22,6 +24,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final FormServiceClient formServiceClient;
     private final UserServiceClient userServiceClient;
+    private final ResponseServiceClient responseServiceClient;
 
     @PostMapping("/users/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDTO registerRequestDTO){
@@ -84,8 +87,14 @@ public class AuthController {
     }
 
     @PostMapping("/form")
-    ResponseEntity<?> createForm(@RequestBody CreateFormDto createFormDto){
-        return formServiceClient.createForm(createFormDto);
+    ResponseEntity<?> createForm(@RequestBody CreateFormDto createFormDto, @RequestHeader("Authorization") String authHeader){
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = authHeader.substring(7);
+        Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
+
+        return formServiceClient.createForm(createFormDto, userIdFromToken);
     }
 
     @GetMapping("/form/{id}")
@@ -147,7 +156,7 @@ public class AuthController {
         return formServiceClient.getCollaborators(formId);
     }
 
-    @PatchMapping("/form/{formId}/collab/{userId}")
+    @PostMapping("/form/{formId}/collab/{userId}")
     ResponseEntity<?> updateRole(@PathVariable("formId") Long formId,
                                  @PathVariable("userId") Long userId,
                                  @RequestParam CollaboratorRole collaboratorRole,
@@ -172,5 +181,45 @@ public class AuthController {
         Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
 
         return formServiceClient.removeCollaborator(formId, userId, userIdFromToken);
+    }
+
+    @GetMapping("/response/{formId}")
+    ResponseEntity<?> getAllResponsesForForm(@PathVariable Long formId, @RequestHeader("Authorization") String authHeader){
+        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
+
+        return responseServiceClient.getAllResponsesForForm(formId, userIdFromToken);
+    }
+
+    @GetMapping("/response/{formId}/{id}")
+    ResponseEntity<?> getResponseForFormById(@PathVariable Long formId, @PathVariable Long responseId, @RequestHeader("Authorization") String authHeader){
+        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
+
+        return responseServiceClient.getResponseForFormById(formId, responseId, userIdFromToken);
+    }
+
+    @PostMapping("/response")
+    ResponseEntity<?> createResponse(@RequestBody CreateResponseDTO createResponseDTO){
+        return responseServiceClient.createResponse(createResponseDTO);
+    }
+
+    @DeleteMapping("/response/{id}")
+    ResponseEntity<?> deleteResponse(@PathVariable Long id, @RequestHeader("Authorization") String authHeader){
+        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = authHeader.substring(7);
+        Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
+
+        return responseServiceClient.deleteResponse(id, userIdFromToken);
     }
 }
