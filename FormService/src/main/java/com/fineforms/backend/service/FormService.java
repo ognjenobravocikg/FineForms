@@ -103,7 +103,7 @@ public class FormService {
         )) {
             throw new NotAuthorizedException("Only the owner can update the form.");
         }
-        f.setTitle(dto.getTitle());
+        if(!dto.getTitle().isEmpty() && !dto.getTitle().equalsIgnoreCase(f.getTitle())) f.setTitle(dto.getTitle());
         f.setDescription(dto.getDescription());
         f.setRequiresAuth(dto.isRequiresAuth());
         return formRepository.save(f);
