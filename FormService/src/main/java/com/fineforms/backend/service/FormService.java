@@ -34,9 +34,15 @@ public class FormService {
 
     @Transactional
     public Form createForm(CreateFormDto dto, Long currentUserId) {
-        if(dto.getOwnerId() == null || !dto.getOwnerId().equals(currentUserId)) {
+        if(dto.getOwnerId() == null) {
             dto.setOwnerId(currentUserId);
         }
+
+        if(!dto.getOwnerId().equals(currentUserId)) {
+            throw new NotAuthorizedException("Invalid ownerId");
+        }
+
+        if(dto.getTitle().isEmpty()) { dto.setTitle("Untitled Form"); }
 
         Form f = new Form();
         f.setOwnerId(dto.getOwnerId());
