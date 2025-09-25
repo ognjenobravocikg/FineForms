@@ -76,7 +76,7 @@ export default function App() {
           }
         />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/forms/:formId/edit" element={<FormEditPage />} />
+        <Route path="/form/:formId" element={<FormEditPage />} />
 
         {/* Auth layout pages */}
         <Route

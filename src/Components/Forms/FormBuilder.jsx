@@ -28,6 +28,12 @@ export default function FormBuilder() {
   };
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to create a form.");
+      return;
+    }
+
     const formData = {
       title,
       description,
@@ -37,16 +43,22 @@ export default function FormBuilder() {
     console.log("Sending to backend:", formData);
 
     try {
-      const response = await fetch("http://localhost:8080/api/forms", {
+      const response = await fetch("http://localhost:8080/api/form", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Add the token here
+        },
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
         alert("Form saved successfully!");
+        // Optionally, navigate to another page
+        // navigate("/dashboard");
       } else {
-        alert("Error saving form.");
+        const errData = await response.json();
+        alert(errData.message || "Error saving form.");
       }
     } catch (err) {
       console.error("Error:", err);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
+  const storedUserId = localStorage.getItem("userId");
   const navigate = useNavigate();
   const [selectedFeature, setSelectedFeature] = useState(1);
 

@@ -10,22 +10,21 @@ export default function Profile() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    const userId = localStorage.getItem("userId");
 
-    if (!token || !storedUser) {
+    if (!token || !userId) {
       setError("Not authenticated");
       setLoading(false);
       navigate("/login");
       return;
     }
 
-    const userObj = JSON.parse(storedUser);
-
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/api/users/${userObj.id}/details/`,
+          `http://localhost:8080/api/users/${userId}/details`,
           {
+            method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,

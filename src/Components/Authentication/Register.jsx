@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 export default function Register() {
   const [firstName, setFirstName] = useState("");
@@ -23,14 +24,11 @@ export default function Register() {
     const registerData = { email, password, firstName, lastName };
 
     try {
-      const response = await fetch(
-        "http://localhost:8080/api/users/register/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(registerData),
-        }
-      );
+      const response = await fetch("http://localhost:8080/api/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registerData),
+      });
 
       if (response.status === 201) {
         const data = await response.json();
@@ -38,12 +36,16 @@ export default function Register() {
         // if backend sends back a token here, save it
         if (data.token) {
           localStorage.setItem("token", data.token);
-          localStorage.setItem("user", JSON.stringify(data.user));
+          const decoded = jwtDecode(data.token);
+          console.log(decoded);
+          const userId = decoded.id;
+          console.log(userId);
+          localStorage.setItem("userId", userId);
         }
 
-        setSuccess(`User ${data.email} registered successfully!`);
+        setSuccess(`User ${jwtDecode(token).sub} registered successfully!`);
         setError("");
-        navigate("/login");
+        navigate("/");
       } else if (response.status === 409) {
         const errData = await response.json();
         setError(errData.message || "User already exists!");

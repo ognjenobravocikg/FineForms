@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,7 +13,7 @@ export default function Login() {
     const loginData = { email, password };
 
     try {
-      const response = await fetch("http://localhost:8080/api/users/login/", {
+      const response = await fetch("http://localhost:8080/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginData),
@@ -23,14 +24,13 @@ export default function Login() {
 
         // ✅ Save JWT token
         localStorage.setItem("token", data.token);
+        const decoded = jwtDecode(data.token);
+        console.log(decoded);
+        const userId = decoded.id;
+        console.log(userId);
+        localStorage.setItem("userId", userId);
 
-        // Save user info if backend sends it
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
-
-        alert("Login successful!");
-        navigate("/forms");
+        navigate("/");
       } else {
         alert("Invalid email or password.");
       }
