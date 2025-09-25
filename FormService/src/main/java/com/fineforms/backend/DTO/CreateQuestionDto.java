@@ -22,6 +22,6 @@ public class CreateQuestionDto {
     public int numberStep;
     private Integer minRequiredAnswers;
     private Integer maxAllowedAnswers;
-
+    private Long formId;
     public List<OptionDto> options; // for multi_choice
 }

@@ -120,6 +120,7 @@ public class FormService {
     }
     @Transactional
     public Form addQuestion(Long formId, CreateQuestionDto dto) {
+
         Form form = getForm(formId);
 
         Question q = new Question();
@@ -129,7 +130,7 @@ public class FormService {
         q.setNumberMin(dto.getNumberMin());
         q.setNumberMax(dto.getNumberMax());
         q.setNumberStep(dto.getNumberStep());
-        q.setPosition(form.getQuestions().size()); // add at end
+        q.setPosition(form.getQuestions().size());
 
         if (dto.getOptions() != null) {
             int ord = 0;
@@ -142,6 +143,7 @@ public class FormService {
         }
 
         form.addQuestion(q);
+
         return formRepository.save(form);
     }
 

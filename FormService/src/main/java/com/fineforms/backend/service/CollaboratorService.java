@@ -7,6 +7,7 @@ import com.fineforms.backend.enums.CollaboratorRole;
 import com.fineforms.backend.repo.FormRepository;
 import lombok.RequiredArgsConstructor;
 import jakarta.persistence.EntityNotFoundException;
+import com.fineforms.backend.DTO.CollaboratorDto;
 
 import java.util.List;
 
@@ -21,20 +22,31 @@ public List<Collaborator> getCollaboratorsByForm(Long formId) {
     return collaboratorRepository.findByFormId(formId);
 }
 
-public Collaborator addCollaborator(Long formId, Long userId, CollaboratorRole role, Long currentUserId) {
-    var form = formRepository.findById(formId)
-            .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
-    if (!form.getOwnerId().equals(currentUserId)) {
-        throw new SecurityException("Only the owner can add collaborators.");
-    }
-    Collaborator collaborator = Collaborator.builder()
-        .form(form)
-        .userId(userId)
-        .role(role)
-        .build();
+    public CollaboratorDto addCollaborator(Long formId, Long userId, CollaboratorRole role, Long currentUserId) {
+        var form = formRepository.findById(formId)
+                .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+        if (!form.getOwnerId().equals(currentUserId)) {
+            throw new SecurityException("Only the owner can add collaborators.");
+        }
+        Collaborator collaborator = Collaborator.builder()
+                .form(form)
+                .userId(userId)
+                .role(role)
+                .build();
 
-    return collaboratorRepository.save(collaborator);
-}
+
+        Collaborator entity = collaboratorRepository.save(collaborator);
+
+        CollaboratorDto response = CollaboratorDto.builder()
+                .id(entity.getId())
+                .formId(entity.getForm().getId())
+                .userId(entity.getUserId())
+                .role(entity.getRole().name())
+                .build();
+
+        return response;
+    }
+
     public void removeCollaborator(Long formId, Long userId, Long currentUserId) {
         var form = formRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
