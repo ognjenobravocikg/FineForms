@@ -1,35 +1,55 @@
 package com.djokic.responseserviceff.controller;
 
-import com.djokic.responseserviceff.dto.CreateResponseRequestDTO;
-import com.djokic.responseserviceff.dto.DeleteResponseRequestDTO;
+import com.djokic.responseserviceff.dto.CreateResponseDTO;
+import com.djokic.responseserviceff.dto.ResponseDTO;
 import com.djokic.responseserviceff.service.ResponseService;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController()
-@RequestMapping("/form/{formId}/response")
-@AllArgsConstructor
+@RestController
+@RequestMapping("/response")
 public class ResponseController {
-    @Autowired
-    private final ResponseService responseService;
 
-    @GetMapping
-    public ResponseEntity<?> getAllResponsesForForm(@PathVariable Long formId){
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getAllResponsesForForm(formId));
-    }
+    @Autowired
+    private ResponseService responseService;
 
     @PostMapping
-    public ResponseEntity<?> createResponseForForm(@PathVariable Long formId, @RequestBody CreateResponseRequestDTO createResponseRequestDTO){
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseService.createResponseForForm(formId, createResponseRequestDTO));
+    public ResponseEntity<ResponseDTO> createResponse(@RequestBody CreateResponseDTO requestDTO) {
+        ResponseDTO response = responseService.createResponse(requestDTO);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{responseId}")
-    public ResponseEntity<?> deleteResponse(@PathVariable Long formId, @RequestBody DeleteResponseRequestDTO deleteResponseRequest){
-        return ResponseEntity.ok(responseService.deleteResponse(formId, deleteResponseRequest.getResponseId(), deleteResponseRequest.getCurrentUserId()));
+    @PostMapping("/anonymous")
+    public ResponseEntity<ResponseDTO> createAnonymousResponse(@RequestBody CreateResponseDTO requestDTO) {
+        ResponseDTO response = responseService.createAnonymousResponse(requestDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{formId}")
+    public ResponseEntity<List<ResponseDTO>> getResponsesByFormId(
+            @PathVariable Long formId,
+            @RequestParam("currentUserId") Long currentUserId) {
+        List<ResponseDTO> responses = responseService.getResponsesByFormId(formId, currentUserId);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/{formId}/{responseId}")
+    public ResponseEntity<ResponseDTO> getResponseForFormById(
+            @PathVariable Long formId,
+            @PathVariable Long responseId,
+            @RequestParam("currentUserId") Long currentUserId) {
+        ResponseDTO response = responseService.getResponseById(responseId, currentUserId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteResponse(
+            @PathVariable Long id,
+            @RequestParam("currentUserId") Long currentUserId) {
+        responseService.deleteResponse(id, currentUserId);
+        return ResponseEntity.noContent().build();
     }
 }

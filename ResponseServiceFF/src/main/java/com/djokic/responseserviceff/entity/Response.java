@@ -1,14 +1,43 @@
 package com.djokic.responseserviceff.entity;
 
-import jakarta.persistence.Entity;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
-@Data
-@Setter
-@Getter
+import java.time.LocalDateTime;
+
 @Entity
+@Table(name = "responses")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Response {
-    // TODO: ADD ID, Form, Author, List of Answers for Questions. Also implement Answer class that will have Response ID, Question ID and other data related to the response on a specific question.
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private Long formId;
+
+    @Column(nullable = false)//anonymous users have id = 0
+    private Long userId;
+
+    private String userEmail;
+
+    @Column(columnDefinition = "TEXT")
+    private String answers;
+
+    private LocalDateTime submittedAt;
+
+    private Boolean isAuthenticated;
+
+    @PrePersist
+    protected void onCreate() {
+        submittedAt = LocalDateTime.now();
+        if (this.isAuthenticated == null) {
+            this.isAuthenticated = this.userId != null && this.userId > 0;
+        }
+    }
 }
