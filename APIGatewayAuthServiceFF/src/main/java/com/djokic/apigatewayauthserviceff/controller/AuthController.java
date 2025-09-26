@@ -177,18 +177,18 @@ public class AuthController {
         return formServiceClient.getCollaborators(formId);
     }
 
-    @PostMapping("/form/{formId}/collab/{userId}")
+    @PostMapping("/form/{formId}/collab/{userId}/update-role")
     ResponseEntity<?> updateRole(@PathVariable("formId") Long formId,
                                  @PathVariable("userId") Long userId,
-                                 @RequestParam CollaboratorRole collaboratorRole,
+                                 @RequestParam("collaboratorRole") CollaboratorRole collaboratorRole,
                                  @RequestHeader("Authorization") String authHeader){
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String token = authHeader.substring(7);
-        Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
+        Long currentUserId = jwtService.extractAllClaims(token).get("id", Long.class);
 
-        return formServiceClient.updateRole(formId, userId, collaboratorRole, userIdFromToken);
+        return formServiceClient.updateRole(formId, userId, collaboratorRole, currentUserId);
     }
 
     @DeleteMapping("/form/{formId}/collab/{userId}")

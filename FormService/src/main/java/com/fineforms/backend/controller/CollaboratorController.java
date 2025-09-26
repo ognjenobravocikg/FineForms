@@ -41,7 +41,7 @@ public class CollaboratorController {
     public ResponseEntity<Collaborator> updateRole(
             @PathVariable Long formId,
             @PathVariable Long userId,
-            @RequestParam CollaboratorRole role,
+            @RequestParam("collaboratorRole") CollaboratorRole role,
             @RequestParam("currentUserId") Long currentUserId
     ) {
         return ResponseEntity.ok(collaboratorService.updateCollaboratorRole(formId, userId, role, currentUserId));

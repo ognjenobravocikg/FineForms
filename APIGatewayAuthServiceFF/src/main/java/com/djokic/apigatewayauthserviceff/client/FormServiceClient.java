@@ -39,7 +39,7 @@ public interface FormServiceClient {
     @PostMapping("/form/{formId}/collab/{userId}/update-role")
     ResponseEntity<?> updateRole(@PathVariable("formId") Long formId,
                                  @PathVariable("userId") Long userId,
-                                 @RequestParam CollaboratorRole collaboratorRole,
+                                 @RequestParam("collaboratorRole") CollaboratorRole collaboratorRole,
                                  @RequestParam("currentUserId") Long currentUserId);
 
     @DeleteMapping("/form/{formId}/collab/{userId}")
