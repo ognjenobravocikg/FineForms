@@ -55,8 +55,9 @@ public class ResponseController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/export")
-    public ResponseEntity<byte[]> exportResponses(@RequestParam Long formId) {
-        byte[] csvData = responseService.exportResponsesToCsv(formId);
+    public ResponseEntity<byte[]> exportResponses(@RequestParam("formId") Long formId,
+                                                  @RequestParam("currentUserId") Long currentUserId) {
+        byte[] csvData = responseService.exportResponsesToCsv(formId, currentUserId);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"responses.csv\"")

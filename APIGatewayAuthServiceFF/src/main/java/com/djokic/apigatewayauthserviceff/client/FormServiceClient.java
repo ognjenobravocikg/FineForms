@@ -50,7 +50,7 @@ public interface FormServiceClient {
     @GetMapping("/form/user/{userId}")
     ResponseEntity<?> getFormsByUserId(@PathVariable Long userId);
 
-    @GetMapping("/form")
+    @GetMapping("/form/collab")
     ResponseEntity<?> getFormByCollaboratorId(@RequestParam("collaboratorId") Long collaboratorId,
                                               @RequestParam("currentUserId") Long currentUserId);
 }

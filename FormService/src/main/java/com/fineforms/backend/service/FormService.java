@@ -294,7 +294,7 @@ public class FormService {
                 .map(Collaborator::getForm)
                 .distinct()
                 .toList();
-        
+
         List<FormDTO> formDTOs = forms.stream()
                 .map(this::mapToDto)
                 .toList();

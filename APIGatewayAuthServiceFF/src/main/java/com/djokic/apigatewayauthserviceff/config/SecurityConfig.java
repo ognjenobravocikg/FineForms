@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .cors()
                 .and()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register", "/api/users/login", "/api/form/public/**").permitAll()
+                        .requestMatchers("/api/users/register", "/api/users/login", "/api/form/public/**", "/api/response").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

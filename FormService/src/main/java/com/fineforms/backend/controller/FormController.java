@@ -57,7 +57,7 @@ public class FormController {
         return ResponseEntity.ok(formService.getPublicForm(id));
     }
 
-    @GetMapping("")
+    @GetMapping("/collab")
     public ResponseEntity<List<FormDTO>> getAllFormsForCollaborator(@RequestParam("collaboratorId") Long collaboratorId,
                                                                     @RequestParam("userId") Long currentUserId){
 

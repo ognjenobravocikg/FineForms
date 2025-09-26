@@ -1,6 +1,7 @@
 package com.djokic.responseserviceff.service;
 
 import com.djokic.responseserviceff.client.FormServiceClient;
+import com.djokic.responseserviceff.dto.CollaboratorDTO;
 import com.djokic.responseserviceff.dto.CreateResponseDTO;
 import com.djokic.responseserviceff.dto.FormDTO;
 import com.djokic.responseserviceff.dto.ResponseDTO;
@@ -86,7 +87,15 @@ public class ResponseService {
         responseRepository.deleteById(responseId);
     }
 
-    public byte[] exportResponsesToCsv(Long formId) {
+    public byte[] exportResponsesToCsv(Long formId, Long currentUserId) {
+        FormDTO f = formServiceClient.getForm(formId);
+        if(!f.getOwnerId().equals(currentUserId)) {
+            List<CollaboratorDTO> collaborators = formServiceClient.getCollaborators(formId);
+            if(collaborators.stream().noneMatch(c -> c.getUserId().equals(currentUserId))) {
+                throw new RuntimeException("Not allowed to export responses!");
+            }
+        }
+
         List<Response> responses = responseRepository.findByFormId(formId);
 
         if (responses.isEmpty()) {
