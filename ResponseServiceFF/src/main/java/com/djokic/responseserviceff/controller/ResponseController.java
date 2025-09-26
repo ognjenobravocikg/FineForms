@@ -64,5 +64,4 @@ public class ResponseController {
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(csvData);
     }
-
 }

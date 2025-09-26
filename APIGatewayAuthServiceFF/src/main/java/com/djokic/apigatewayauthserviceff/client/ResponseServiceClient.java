@@ -25,5 +25,5 @@ public interface ResponseServiceClient {
 
     @GetMapping("/response/export")
     ResponseEntity<?> exportResponses(@RequestParam("formId") Long formId,
-                                      @RequestParam("formId") Long currentUserId);
+                                      @RequestParam("currentUserId") Long currentUserId);
 }
