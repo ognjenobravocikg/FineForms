@@ -24,6 +24,6 @@ public interface ResponseServiceClient {
     ResponseEntity<?> deleteResponse(@PathVariable Long id, @RequestParam("currentUserId") Long currentUserId);
 
     @GetMapping("/response/export")
-    ResponseEntity<?> exportResponses(@RequestParam("formId") Long formId,
-                                      @RequestParam("currentUserId") Long currentUserId);
+    ResponseEntity<byte[]> exportResponses(@RequestParam("formId") Long formId,
+                                           @RequestParam("currentUserId") Long currentUserId);
 }
