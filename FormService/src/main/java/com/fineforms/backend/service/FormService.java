@@ -159,10 +159,10 @@ public class FormService {
     public Form updateForm(Long id, CreateFormDto dto, Long currentUserId) {
         Form f = getForm(id);
         Optional<Collaborator> collab = collaboratorRepository.findByFormIdAndUserId(id, currentUserId);
-        if(!f.getOwnerId().equals(currentUserId) || (
-                collab.isEmpty() || collab.get().getRole()!=CollaboratorRole.EDITOR
-        )) {
-            throw new NotAuthorizedException("Only the owner can update the form.");
+
+        if (!(f.getOwnerId().equals(currentUserId) ||
+                (collab.isPresent() && collab.get().getRole() == CollaboratorRole.EDITOR))) {
+            throw new NotAuthorizedException("Only the owner or editors can update the form.");
         }
         if(!dto.getTitle().isEmpty() && !dto.getTitle().equalsIgnoreCase(f.getTitle())) f.setTitle(dto.getTitle());
         f.setDescription(dto.getDescription());
