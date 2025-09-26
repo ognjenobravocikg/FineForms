@@ -14,4 +14,5 @@ public class CreateResponseDTO {
     private Long userId;//null ako je anonimni korisnik
     private String userEmail;// null ako je anonimni korisnik
     private Map<String, Object> answers;
+    private Boolean isAuthenticated;
 }
