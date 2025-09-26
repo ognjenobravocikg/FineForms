@@ -5,6 +5,7 @@ import com.fineforms.backend.DTO.FormDTO;
 import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.DTO.CreateQuestionDto;
 import com.fineforms.backend.service.FormService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,5 +55,15 @@ public class FormController {
     @GetMapping("/public/{id}")
     public ResponseEntity<?> getPublicForm(@PathVariable Long id){
         return ResponseEntity.ok(formService.getPublicForm(id));
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<FormDTO>> getAllFormsForCollaborator(@RequestParam("collaboratorId") Long collaboratorId,
+                                                                    @RequestParam("userId") Long currentUserId){
+
+        if(!collaboratorId.equals(currentUserId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(formService.getAllFormsForCollaborator(collaboratorId, currentUserId));
     }
 }

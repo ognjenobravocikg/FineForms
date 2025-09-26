@@ -15,6 +15,7 @@ import com.fineforms.backend.mappers.FormMapper;
 import com.fineforms.backend.exceptions.*;
 import com.fineforms.backend.client.UserServiceClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -284,5 +285,20 @@ public class FormService {
                 .distinct()
                 .map(this::mapToDto)
                 .toList();
+    }
+
+    public List<FormDTO> getAllFormsForCollaborator(Long collaboratorId, Long currentUserId) {
+        List<Collaborator> collaboratorList = collaboratorService.getCollaboratorsByCollaboratorId(collaboratorId);
+
+        List<Form> forms = collaboratorList.stream()
+                .map(Collaborator::getForm)
+                .distinct()
+                .toList();
+        
+        List<FormDTO> formDTOs = forms.stream()
+                .map(this::mapToDto)
+                .toList();
+
+        return formDTOs;
     }
 }

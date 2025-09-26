@@ -75,4 +75,8 @@ public List<Collaborator> getCollaboratorsByForm(Long formId) {
         collaborator.setRole(role);
         return collaboratorRepository.save(collaborator);
     }
+
+    public List<Collaborator> getCollaboratorsByCollaboratorId(Long collaboratorId) {
+        return collaboratorRepository.findAllByUserId(collaboratorId);
+    }
 }
