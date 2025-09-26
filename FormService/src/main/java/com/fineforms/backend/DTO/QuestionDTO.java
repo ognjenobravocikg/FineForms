@@ -20,5 +20,6 @@ public class QuestionDTO {
     private Integer maxAllowedAnswers;
     private List<Integer> numericValues;
     private Long formId;
+    private int postion;
 }
 

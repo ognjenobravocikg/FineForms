@@ -25,4 +25,5 @@ public class CreateQuestionDto {
     private Integer maxAllowedAnswers;
     private Long formId;
     public List<OptionDto> options; // for multi_choice
+    public int position;
 }
