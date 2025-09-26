@@ -1,9 +1,6 @@
 package com.fineforms.backend.service;
 
-import com.fineforms.backend.DTO.CreateFormDto;
-import com.fineforms.backend.DTO.CreateQuestionDto;
-import com.fineforms.backend.DTO.FormDTO;
-import com.fineforms.backend.DTO.OptionDto;
+import com.fineforms.backend.DTO.*;
 import com.fineforms.backend.entity.Collaborator;
 import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.entity.Question;
@@ -21,6 +18,7 @@ import com.fineforms.backend.client.UserServiceClient;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -32,6 +30,63 @@ public class FormService {
     private final UserServiceClient userServiceClient;
     private final CollaboratorService collaboratorService;
     private final CollaboratorRepository collaboratorRepository;
+
+    private FormDTO mapToDto(Form form) {
+        return FormDTO.builder()
+                .id(form.getId())
+                .title(form.getTitle())
+                .description(form.getDescription())
+                .requiresAuth(form.isRequiresAuth())
+                .questions(form.getQuestions() != null ?
+                        form.getQuestions().stream()
+                                .map(this::mapQuestionToDto)
+                                .collect(Collectors.toList())
+                        : List.of())
+                .collaborators(form.getCollaborators() != null ?
+                        form.getCollaborators().stream()
+                                .map(this::mapCollaboratorToDto)
+                                .collect(Collectors.toList())
+                        : List.of())
+                .build();
+    }
+
+    private QuestionDTO mapQuestionToDto(Question q) {
+        return new QuestionDTO(
+                q.getId(),
+                q.getText(),
+                q.getType().name(), // Enum -> String
+                q.getOptions() != null ?
+                        q.getOptions().stream()
+                                .map(this::mapOptionToDto)
+                                .collect(Collectors.toList())
+                        : List.of(),
+                q.getImageUrl(),
+                q.isRequiredQuestion(),
+                q.getNumberMin(),
+                q.getNumberMax(),
+                q.getNumberStep(),
+                null,null,null,
+                q.getForm().getId()
+        );
+    }
+
+    private OptionDto mapOptionToDto(Option o) {
+        return OptionDto.builder()
+                .id(o.getId())
+                .text(o.getText())
+                .order(o.getOrder())
+                .isCorrect(o.isCorrect())
+                .imageUrl(o.getImageUrl())
+                .questionId(o.getQuestion().getId())
+                .build();
+    }
+
+    private CollaboratorDto mapCollaboratorToDto(Collaborator c) {
+        return CollaboratorDto.builder()
+                .userId(c.getUserId())
+                .role(c.getRole().name())
+                .build();
+    }
 
     @Transactional
     public Form createForm(CreateFormDto dto, Long currentUserId) {
@@ -311,8 +366,8 @@ public class FormService {
     }
 
     @Transactional(readOnly = true)
-    public List<Form> getFormsForUser(Long userId) {
-        List<Form> ownedForms = formRepository.findByOwnerId(userId);
+    public List<FormDTO> getFormsForUser(Long userId) {
+        List<Form> ownedForms = formRepository.findAllByOwnerId(userId);
 
         List<Form> collaboratorForms = collaboratorRepository.findByUserId(userId)
                 .stream()
@@ -321,6 +376,7 @@ public class FormService {
 
         return Stream.concat(ownedForms.stream(), collaboratorForms.stream())
                 .distinct()
+                .map(this::mapToDto) // pozivamo mapper
                 .toList();
     }
 }

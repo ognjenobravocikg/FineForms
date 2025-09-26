@@ -13,7 +13,7 @@ public class QuestionDTO {
     private Long id;
     private String text;
     private String type;
-    private List<String> options;
+    private List<OptionDto> options;
     private String imageUrl;
     private boolean required;
     private int numberMin;

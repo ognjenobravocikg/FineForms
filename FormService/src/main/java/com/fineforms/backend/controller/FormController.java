@@ -1,6 +1,7 @@
 package com.fineforms.backend.controller;
 
 import com.fineforms.backend.DTO.CreateFormDto;
+import com.fineforms.backend.DTO.FormDTO;
 import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.DTO.CreateQuestionDto;
 import com.fineforms.backend.service.FormService;
@@ -30,7 +31,7 @@ public class FormController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Form>> getFormsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<FormDTO>> getFormsByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(formService.getFormsForUser(userId));
     }
 
