@@ -221,6 +221,36 @@ export default function FormsPage() {
     }
   };
 
+  const handleExportCSV = async (formId) => {
+    if (!token) {
+      alert("You must be logged in to export responses");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/response/export?formId=${formId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `form_${formId}_responses.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export CSV error:", err);
+      alert("Failed to export CSV: " + (err.message || "unknown"));
+    }
+  };
+
   if (loading) return <div className="p-6 text-gray-600">Loading...</div>;
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
 
@@ -241,16 +271,44 @@ export default function FormsPage() {
         {/* Forms list */}
         <div className="space-y-4">
           {forms.length > 0 ? (
-            forms.map((form) => (
-              <FormCard
-                key={form.id}
-                form={form}
-                userRole={form.userRole}
-                onEdit={() => navigate(`/form/${form.id}`)}
-                onCollaborators={() => openCollaboratorsModal(form)}
-                onDelete={() => handleDeleteForm(form.id)}
-              />
-            ))
+            forms.map((form) => {
+              const answerUrl = `${window.location.origin}/form/${form.id}/answer`;
+              return (
+                <FormCard
+                  key={form.id}
+                  form={form}
+                  onEdit={() => navigate(`/form/${form.id}`)}
+                  onCollaborators={() => openCollaboratorsModal(form)}
+                  onDelete={() => handleDeleteForm(form.id)}
+                  extraActions={
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      <a
+                        href={answerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                      >
+                        Answer
+                      </a>
+
+                      <button
+                        onClick={() => navigator.clipboard.writeText(answerUrl)}
+                        className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+                      >
+                        Copy Link
+                      </button>
+
+                      <button
+                        onClick={() => handleExportCSV(form.id)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  }
+                />
+              );
+            })
           ) : (
             <p className="text-gray-500 text-center">No forms available</p>
           )}
