@@ -46,7 +46,4 @@ public class Response {
         return this.authenticated;
     }
 
-    public void setAuthenticated(Boolean authenticated) {
-        this.authenticated = authenticated;
-    }
 }

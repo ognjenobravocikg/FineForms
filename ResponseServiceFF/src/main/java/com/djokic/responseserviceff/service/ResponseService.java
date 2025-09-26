@@ -7,6 +7,7 @@ import com.djokic.responseserviceff.dto.ResponseDTO;
 import com.djokic.responseserviceff.entity.Response;
 import com.djokic.responseserviceff.mapper.ResponseMapper;
 import com.djokic.responseserviceff.repository.ResponseRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,8 +16,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -91,19 +96,54 @@ public class ResponseService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              PrintWriter writer = new PrintWriter(new OutputStreamWriter(baos, StandardCharsets.UTF_8), true)) {
 
-            // Header
-            writer.println("id,userId,userEmail,answers,isAuthenticated");
+            ObjectMapper mapper = new ObjectMapper();
 
-            // Rows
+            Set<String> allKeys = responses.stream()
+                    .flatMap(r -> {
+                        try {
+                            Map<String, Object> map = r.getAnswers() != null ?
+                                    mapper.readValue(r.getAnswers(), Map.class) :
+                                    Map.of();
+                            return map.keySet().stream();
+                        } catch (Exception e) {
+                            return Stream.empty();
+                        }
+                    })
+                    .collect(Collectors.toSet());
+
+            List<String> headers = new ArrayList<>();
+            headers.add("id");
+            headers.add("userId");
+            headers.add("userEmail");
+            headers.addAll(allKeys);
+            headers.add("isAuthenticated");
+
+            writer.println(headers.stream()
+                    .map(h -> "\"" + h + "\"")
+                    .collect(Collectors.joining(",")));
+
             for (Response r : responses) {
-                String answersJson = r.getAnswers() != null ? r.getAnswers().toString() : "{}";
-                writer.printf("%d,%d,%s,%s,%b%n",
-                        r.getId(),
-                        r.getUserId() != null ? r.getUserId() : 0,
-                        r.getUserEmail() != null ? r.getUserEmail() : "",
-                        answersJson.replaceAll(",", ";"),
-                        r.isAuthenticated()
-                );
+                List<String> row = new ArrayList<>();
+                row.add(String.valueOf(r.getId()));
+                row.add(String.valueOf(r.getUserId() != null ? r.getUserId() : 0));
+                row.add("\"" + (r.getUserEmail() != null ? r.getUserEmail().replace("\"","\"\"") : "") + "\"");
+
+                Map<String, Object> answersMap;
+                try {
+                    answersMap = r.getAnswers() != null ? mapper.readValue(r.getAnswers(), Map.class) : Map.of();
+                } catch (Exception e) {
+                    answersMap = Map.of();
+                }
+
+                for (String key : allKeys) {
+                    Object value = answersMap.getOrDefault(key, "");
+                    String safeValue = value != null ? value.toString().replace("\"","\"\"") : "";
+                    row.add("\"" + safeValue + "\"");
+                }
+
+                row.add(String.valueOf(r.isAuthenticated()));
+
+                writer.println(String.join(",", row));
             }
 
             writer.flush();

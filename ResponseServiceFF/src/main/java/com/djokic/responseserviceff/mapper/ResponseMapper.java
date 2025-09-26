@@ -36,7 +36,7 @@ public class ResponseMapper {
                 .userId(userId != null ? userId : 0L)
                 .userEmail(dto.getUserEmail())
                 .answers(answersJson)
-                .isAuthenticated(userId != null && userId > 0)
+                .authenticated(userId != null && userId > 0)
                 .build();
     }
 
@@ -59,7 +59,7 @@ public class ResponseMapper {
                 .userEmail(response.getUserEmail())
                 .answers(answers)
                 .submittedAt(response.getSubmittedAt())
-                .isAuthenticated(response.getIsAuthenticated())
+                .isAuthenticated(response.getAuthenticated())
                 .build();
     }
 }
