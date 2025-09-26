@@ -22,5 +22,5 @@ public class QuestionDTO {
     private Integer minRequiredAnswers;
     private Integer maxAllowedAnswers;
     private List<Integer> numericValues;
-
+    private Long formId;
 }

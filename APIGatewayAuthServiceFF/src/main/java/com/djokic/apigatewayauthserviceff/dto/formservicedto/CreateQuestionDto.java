@@ -1,5 +1,6 @@
 package com.djokic.apigatewayauthserviceff.dto.formservicedto;
 
+import com.djokic.apigatewayauthserviceff.enumeration.QuestionTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +15,7 @@ public class CreateQuestionDto {
     private Long id;
     public String text;
     public boolean required;
-    public String type; // example: short_text, long_text, multi_choice etc.
+    private QuestionTypeEnum type;
     public String imageUrl;
 
     public int numberMin;
@@ -22,6 +23,6 @@ public class CreateQuestionDto {
     public int numberStep;
     private Integer minRequiredAnswers;
     private Integer maxAllowedAnswers;
-
+    private Long formId;
     public List<OptionDto> options; // for multi_choice
 }
