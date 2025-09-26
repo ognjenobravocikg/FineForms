@@ -36,7 +36,7 @@ public interface FormServiceClient {
     @GetMapping("/form/{formId}/collab")
     ResponseEntity<?> getCollaborators(@PathVariable("formId") Long formId);
 
-    @PatchMapping("/form/{formId}/collab/{userId}")
+    @PostMapping("/form/{formId}/collab/{userId}/update-role")
     ResponseEntity<?> updateRole(@PathVariable("formId") Long formId,
                                  @PathVariable("userId") Long userId,
                                  @RequestParam CollaboratorRole collaboratorRole,
