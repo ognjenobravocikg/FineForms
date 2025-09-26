@@ -43,7 +43,11 @@ export default function Register() {
           localStorage.setItem("userId", userId);
         }
 
-        setSuccess(`User ${jwtDecode(token).sub} registered successfully!`);
+        navigate("/");
+        setSuccess(
+          `User ${jwtDecode(data.token).sub} registered successfully!`
+        );
+
         setError("");
         navigate("/");
       } else if (response.status === 409) {
@@ -52,9 +56,7 @@ export default function Register() {
       } else {
         setError("Unexpected error occurred!");
       }
-    } catch (err) {
-      setError("Could not connect to backend.");
-    }
+    } catch (err) {}
   };
 
   return (

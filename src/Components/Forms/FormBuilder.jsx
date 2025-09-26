@@ -1,4 +1,3 @@
-// FormBuilder.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FormHeader from "./FormHeader";
@@ -9,10 +8,10 @@ const API_BASE = "http://localhost:8080/api";
 export default function FormBuilder() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [requiresAuth, setRequiresAuth] = useState(true);
   const [questions, setQuestions] = useState([]);
-  const [publicForm, setPublicForm] = useState(false);
-
   const [saving, setSaving] = useState(false);
+
   const navigate = useNavigate();
 
   const addQuestion = () =>
@@ -22,20 +21,18 @@ export default function FormBuilder() {
         id: null,
         text: "",
         required: false,
-        type: "short_text",
+        type: "SHORT_ANSWER",
         imageUrl: null,
-        numberMin: 0,
-        numberMax: 0,
+        numberMin: null,
+        numberMax: null,
         numberStep: 1,
-        minRequiredAnswers: null,
-        maxAllowedAnswers: null,
         options: [],
       },
     ]);
 
   const updateQuestion = (index, q) => {
     setQuestions((prev) => {
-      const next = prev.slice();
+      const next = [...prev];
       next[index] = q;
       return next;
     });
@@ -44,31 +41,25 @@ export default function FormBuilder() {
   const removeQuestion = (index) =>
     setQuestions((prev) => prev.filter((_, i) => i !== index));
 
-  // map frontend question -> CreateQuestionDto
   const toDto = (q) => {
-    // NOTE: backend DTO has numberMin/numberMax fields often used for numeric questions.
-    // We'll reuse numberMin/numberMax for short_text min/max characters (as requested).
-    // If backend expects different fields for text length, change here accordingly.
     const options =
       Array.isArray(q.options) && q.options.length
-        ? q.options.map((opt) =>
-            typeof opt === "string"
-              ? { id: null, text: opt }
-              : { id: opt.id ?? null, text: opt.text ?? opt }
-          )
-        : [];
+        ? q.options.map((opt) => ({
+            text: opt.text ?? "",
+            correct: opt.correct ?? false,
+            imageUrl: opt.imageUrl ?? null,
+          }))
+        : null;
 
     return {
       id: q.id ?? null,
       text: q.text ?? "",
+      type: q.type,
       required: !!q.required,
-      type: q.type ?? "short_text",
       imageUrl: q.imageUrl ?? null,
-      numberMin: typeof q.numberMin === "number" ? q.numberMin : 0,
-      numberMax: typeof q.numberMax === "number" ? q.numberMax : 0,
-      numberStep: typeof q.numberStep === "number" ? q.numberStep : 1,
-      minRequiredAnswers: q.minRequiredAnswers ?? null,
-      maxAllowedAnswers: q.maxAllowedAnswers ?? null,
+      numberMin: q.numberMin,
+      numberMax: q.numberMax,
+      numberStep: q.numberStep,
       options,
     };
   };
@@ -91,8 +82,8 @@ export default function FormBuilder() {
     const payload = {
       title,
       description,
+      requiresAuth,
       ownerId,
-      publicForm, // included; change key if backend requires different name
       questions: questions.map(toDto),
     };
 
@@ -108,24 +99,19 @@ export default function FormBuilder() {
       });
 
       if (!res.ok) {
-        // try parse server message
         let msg = `Server returned ${res.status}`;
         try {
           const json = await res.json();
           msg = json.message || JSON.stringify(json);
         } catch {
-          try {
-            msg = await res.text();
-          } catch {}
+          msg = await res.text();
         }
         throw new Error(msg);
       }
 
       const created = await res.json();
       alert("Form created successfully");
-      // navigate to edit or forms list
-      if (created && created.id) navigate(`/`);
-      else navigate("/forms");
+      navigate("/my-forms");
     } catch (err) {
       console.error("Create form failed:", err);
       alert("Could not save form: " + (err.message || "network error"));
@@ -141,8 +127,8 @@ export default function FormBuilder() {
         setTitle={setTitle}
         description={description}
         setDescription={setDescription}
-        publicForm={publicForm}
-        setPublicForm={setPublicForm}
+        requiresAuth={requiresAuth}
+        setRequiresAuth={setRequiresAuth}
       />
 
       {questions.map((q, i) => (
@@ -156,7 +142,10 @@ export default function FormBuilder() {
       ))}
 
       <div className="flex gap-3 mt-6">
-        <button onClick={addQuestion} className="px-4 py-2 border rounded">
+        <button
+          onClick={addQuestion}
+          className="px-4 py-2 border rounded hover:bg-gray-100"
+        >
           + Add Question
         </button>
         <button
@@ -168,7 +157,7 @@ export default function FormBuilder() {
         </button>
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 border rounded"
+          className="px-4 py-2 border rounded hover:bg-gray-100"
         >
           Cancel
         </button>

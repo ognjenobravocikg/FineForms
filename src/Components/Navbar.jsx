@@ -41,6 +41,14 @@ export default function Navbar() {
           </li>
           <li>
             <Link
+              to="/forms"
+              className="hover:text-indigo-600 transition-colors"
+            >
+              New Form
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/profile"
               className="hover:text-indigo-600 transition-colors"
             >

@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FormHeader from "./FormHeader";
 import QuestionCard from "./QuestionCard";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const API_BASE = "http://localhost:8080/api";
-const userId = localStorage.getItem("userId");
+const currentUserId = localStorage.getItem("userId");
 
 async function parseResponse(res) {
   const ct = res.headers.get("content-type") || "";
@@ -20,32 +21,27 @@ async function parseResponse(res) {
 export default function FormEditPage() {
   const { formId } = useParams();
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState([]);
   const [collaborators, setCollaborators] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const [userSearch, setUserSearch] = useState("");
+  const [ownerId, setOwnerId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [rolesMap, setRolesMap] = useState({});
 
-  const token = localStorage.getItem("token");
-
-  // --- Load form, questions, collaborators, users ---
+  // --- Load form and collaborators ---
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    if (!token) return navigate("/login");
 
-    async function load() {
+    async function loadData() {
       try {
         setLoading(true);
 
-        // Fetch form
+        // --- Fetch form ---
         const formRes = await fetch(`${API_BASE}/form/${formId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -54,47 +50,44 @@ export default function FormEditPage() {
 
         setTitle(form.title || "");
         setDescription(form.description || "");
+        setOwnerId(form.ownerId ?? form.owner?.id ?? null);
+
         setQuestions(
-          (form.questions || []).map((q, idx) => ({
-            id: Number(formId),
-            text: q.text ?? "",
-            requiredQuestion: q.required ?? false,
-            type: q.type || "short_text",
-            imageUrl: q.imageUrl ?? null,
-            numberMin: q.numberMin ?? 0,
-            numberMax: q.numberMax ?? 0,
-            numberStep: q.numberStep ?? 1,
-            minRequiredAnswers: q.minRequiredAnswers ?? null,
-            maxAllowedAnswers: q.maxAllowedAnswers ?? null,
-            position: q.position ?? idx,
-            options: (q.options || []).map((o, oidx) => ({
-              id: o.id ?? null,
-              text: o.text ?? "",
-              order: o.order ?? oidx,
-              isCorrect: o.isCorrect ?? false,
-              imageUrl: o.imageUrl ?? null,
-              questionId: q.id ?? null,
-            })),
-          }))
+          (form.questions || [])
+            .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+            .map((q, idx) => ({
+              id: q.id ?? null,
+              text: q.text ?? "",
+              type: q.type ?? "SHORT_ANSWER",
+              required: q.required ?? false,
+              numberMin: q.numberMin ?? 0,
+              numberMax: q.numberMax ?? 0,
+              numberStep: q.numberStep ?? 1,
+              imageUrl: q.imageUrl ?? null,
+              options: (q.options || []).map((o) => ({
+                text: o.text ?? "",
+                correct: o.isCorrect ?? false,
+                imageUrl: o.imageUrl ?? null,
+              })),
+              position: q.position ?? idx,
+            }))
         );
 
-        // Fetch collaborators
+        // --- Fetch collaborators ---
         const collabRes = await fetch(`${API_BASE}/form/${formId}/collab`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (collabRes.ok) setCollaborators(await parseResponse(collabRes));
+        const collabs = collabRes.ok ? await parseResponse(collabRes) : [];
+        setCollaborators(collabs);
 
-        // Fetch all users
+        // --- Fetch all users ---
         const usersRes = await fetch(`${API_BASE}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (usersRes.ok) {
-          const users = await parseResponse(usersRes);
-          setAllUsers(users);
-          const map = {};
-          users.forEach((u) => (map[u.id] = "VIEWER"));
-          setRolesMap(map);
-        }
+        const users = usersRes.ok ? await parseResponse(usersRes) : [];
+        setAllUsers(
+          users.filter((u) => String(u.id) !== String(currentUserId))
+        );
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -103,8 +96,18 @@ export default function FormEditPage() {
       }
     }
 
-    load();
+    loadData();
   }, [formId, token, navigate]);
+
+  // --- Determine roles ---
+  const isOwner = String(currentUserId) === String(ownerId);
+  const myCollab = collaborators.find(
+    (c) => String(c.userId) === String(currentUserId)
+  );
+  const myRole = myCollab?.role ?? (isOwner ? "OWNER" : "VIEWER");
+
+  const canEditForm = isOwner || myRole === "EDITOR";
+  const canManageCollabs = isOwner;
 
   // --- Question handlers ---
   const addQuestion = () => {
@@ -113,59 +116,141 @@ export default function FormEditPage() {
       {
         id: null,
         text: "",
-        requiredQuestion: false,
-        type: "short_text",
-        imageUrl: null,
+        type: "SHORT_ANSWER",
+        required: false,
         numberMin: 0,
         numberMax: 0,
         numberStep: 1,
-        minRequiredAnswers: null,
-        maxAllowedAnswers: null,
-        position: prev.length,
+        imageUrl: null,
         options: [],
+        position: prev.length,
       },
     ]);
   };
 
   const updateQuestion = (index, q) => {
+    if (!canEditForm) return;
     setQuestions((prev) => {
       const next = [...prev];
-      next[index] = q;
+      next[index] = { ...q, position: index };
       return next;
     });
   };
 
   const removeQuestion = (index) => {
-    setQuestions((prev) => prev.filter((_, i) => i !== index));
+    if (!canEditForm) return;
+    setQuestions((prev) =>
+      prev.filter((_, i) => i !== index).map((q, i) => ({ ...q, position: i }))
+    );
+  };
+
+  const onDragEnd = (result) => {
+    if (!canEditForm) return;
+    if (!result.destination) return;
+
+    const newQuestions = Array.from(questions);
+    const [moved] = newQuestions.splice(result.source.index, 1);
+    newQuestions.splice(result.destination.index, 0, moved);
+
+    setQuestions(newQuestions.map((q, i) => ({ ...q, position: i })));
+  };
+
+  // --- Collaborator handlers ---
+  const addCollaborator = async (userIdToAdd, role = "VIEWER") => {
+    if (!canManageCollabs) return;
+    try {
+      const res = await fetch(`${API_BASE}/form/${formId}/collab`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId: userIdToAdd, role }),
+      });
+      if (!res.ok) throw new Error("Failed to add collaborator");
+      const updated = await fetch(`${API_BASE}/form/${formId}/collab`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCollaborators(updated.ok ? await parseResponse(updated) : []);
+    } catch (err) {
+      console.error(err);
+      alert("Add collaborator failed: " + err.message);
+    }
+  };
+
+  const removeCollaborator = async (userIdToRemove) => {
+    if (!canManageCollabs) return;
+    if (!window.confirm("Remove collaborator?")) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/form/${formId}/collab/${userIdToRemove}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) throw new Error("Failed to remove collaborator");
+      setCollaborators((prev) =>
+        prev.filter((c) => String(c.userId) !== String(userIdToRemove))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Remove collaborator failed: " + err.message);
+    }
+  };
+
+  const changeRole = async (userId, newRole) => {
+    if (!canManageCollabs) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/form/${formId}/collab/${userId}/update-role?collaboratorRole=${encodeURIComponent(
+          newRole
+        )}`,
+        { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) throw new Error("Failed to update role");
+      setCollaborators((prev) =>
+        prev.map((c) =>
+          String(c.userId) === String(userId) ? { ...c, role: newRole } : c
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Role update failed: " + err.message);
+    }
   };
 
   // --- Save form ---
   const handleSave = async () => {
-    console.log(q.id);
-
+    if (!canEditForm) return;
     setSaving(true);
     try {
-      const payloadQuestions = questions.map((q, idx) => ({
-        id: q.id,
-        text: q.text,
-        requiredQuestion: q.requiredQuestion ?? false,
-        type: q.type,
-        position: q.position ?? idx,
-        imageUrl: q.imageUrl ?? null,
-        numberMin: q.numberMin ?? 0,
-        numberMax: q.numberMax ?? 0,
-        numberStep: q.numberStep ?? 1,
-        minRequiredAnswers: q.minRequiredAnswers ?? null,
-        maxAllowedAnswers: q.maxAllowedAnswers ?? null,
-        options: (q.options || []).map((o, oidx) => ({
-          id: o.id ?? null,
-          text: o.text ?? "",
-          order: o.order ?? oidx,
-          isCorrect: o.isCorrect ?? false,
-          imageUrl: o.imageUrl ?? null,
-          questionId: q.id ?? null,
-        })),
-      }));
+      const payload = {
+        id: Number(formId),
+        title,
+        description,
+        questions: questions
+          .filter((q) => q.text.trim() !== "")
+          .map((q) => ({
+            id: q.id ?? null,
+            text: q.text,
+            type: q.type,
+            required: q.required ?? false,
+            numberMin: q.numberMin ?? 0,
+            numberMax: q.numberMax ?? 0,
+            numberStep: q.numberStep ?? 1,
+            imageUrl: q.imageUrl ?? null,
+            position: q.position,
+            options:
+              q.type === "MULTIPLE_CHOICE" || q.type === "SINGLE_CHOICE"
+                ? q.options?.map((o) => ({
+                    text: o.text ?? "",
+                    correct: o.correct ?? false,
+                    imageUrl: o.imageUrl ?? null,
+                  })) || []
+                : null,
+          })),
+      };
 
       const res = await fetch(`${API_BASE}/form/${formId}`, {
         method: "PUT",
@@ -173,12 +258,7 @@ export default function FormEditPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          id: Number(formId),
-          title,
-          description,
-          questions: payloadQuestions,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -196,232 +276,150 @@ export default function FormEditPage() {
     }
   };
 
-  // --- Delete form ---
-  const handleDelete = async () => {
-    if (!window.confirm("Delete this form?")) return;
-    try {
-      const res = await fetch(`${API_BASE}/form/${formId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to delete form");
-      alert("Form deleted.");
-      navigate("/forms");
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed: " + err.message);
-    }
-  };
-
-  // --- Collaborators ---
-  const handleAddCollaborator = async (userId) => {
-    try {
-      const role = (rolesMap[userId] || "VIEWER").toUpperCase();
-      const res = await fetch(`${API_BASE}/form/${formId}/collab`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId, role }),
-      });
-      if (!res.ok) {
-        const errBody = await parseResponse(res);
-        throw new Error(errBody.message || "Failed to add collaborator");
-      }
-      await reloadCollaborators();
-    } catch (err) {
-      console.error(err);
-      alert("Add collaborator failed: " + err.message);
-    }
-  };
-
-  const handleRemoveCollaborator = async (collaboratorId) => {
-    if (!window.confirm("Remove collaborator?")) return;
-    try {
-      const res = await fetch(
-        `${API_BASE}/form/${formId}/collab/${collaboratorId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (!res.ok) throw new Error("Failed to remove collaborator");
-      await reloadCollaborators();
-    } catch (err) {
-      console.error(err);
-      alert("Remove collaborator failed: " + err.message);
-    }
-  };
-
-  const reloadCollaborators = async () => {
-    const res = await fetch(`${API_BASE}/form/${formId}/collab`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) setCollaborators(await parseResponse(res));
-  };
-
-  // --- Filter users ---
-  const filteredUsers = allUsers
-    .filter((u) => String(u.id) !== String(userId)) // <-- convert both to string
-    .filter((u) => {
-      const q = userSearch.toLowerCase();
-      return (
-        u.firstName?.toLowerCase().includes(q) ||
-        u.lastName?.toLowerCase().includes(q) ||
-        u.email?.toLowerCase().includes(q)
-      );
-    });
-
-  // --- Image upload ---
-  const handleImageUpload = async (file, cb) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(`${API_BASE}/upload`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    if (!res.ok) throw new Error("Image upload failed");
-    const data = await res.json();
-    cb(data.url);
-  };
-
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
+      {/* Header */}
       <FormHeader
         title={title}
-        setTitle={setTitle}
+        setTitle={canEditForm ? setTitle : undefined}
         description={description}
-        setDescription={setDescription}
+        setDescription={canEditForm ? setDescription : undefined}
+        readOnly={!canEditForm}
       />
 
-      {questions.map((q, i) => (
-        <QuestionCard
-          key={i}
-          question={q}
-          updateQuestion={(newQ) => updateQuestion(i, newQ)}
-          removeQuestion={() => removeQuestion(i)}
-          onUploadImage={(file) =>
-            handleImageUpload(file, (url) =>
-              updateQuestion(i, { ...q, imageUrl: url })
-            )
-          }
-          onUploadOptionImage={(optIndex, file) =>
-            handleImageUpload(file, (url) => {
-              const newOptions = [...q.options];
-              newOptions[optIndex] = { ...newOptions[optIndex], imageUrl: url };
-              updateQuestion(i, { ...q, options: newOptions });
-            })
-          }
-        />
-      ))}
+      {/* Questions */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="questions">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="space-y-4"
+            >
+              {questions.map((q, i) => (
+                <Draggable
+                  key={q.id ?? i}
+                  draggableId={String(q.id ?? i)}
+                  index={i}
+                >
+                  {(prov) => (
+                    <div
+                      ref={prov.innerRef}
+                      {...prov.draggableProps}
+                      {...prov.dragHandleProps}
+                    >
+                      <QuestionCard
+                        question={q}
+                        updateQuestion={(newQ) => updateQuestion(i, newQ)}
+                        removeQuestion={() => removeQuestion(i)}
+                        readOnly={!canEditForm}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
-      <button
-        onClick={addQuestion}
-        className="px-4 py-2 border rounded-lg hover:bg-gray-100"
-      >
-        + Add Question
-      </button>
+      {/* Add Question */}
+      {canEditForm && (
+        <button
+          onClick={addQuestion}
+          className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+        >
+          + Add Question
+        </button>
+      )}
 
       {/* Collaborators */}
-      <div className="space-y-3 border-t pt-4">
-        <h2 className="text-lg font-semibold">Collaborators</h2>
-        {collaborators.length === 0 ? (
-          <p className="text-sm text-gray-500">No collaborators yet</p>
-        ) : (
-          collaborators.map((c) => {
-            const user = allUsers.find((u) => u.id === c.userId);
-            if (!user) return null; // skip if user not found
+      {canManageCollabs && (
+        <div className="space-y-3 border-t pt-4">
+          <h2 className="text-lg font-semibold">Collaborators</h2>
 
-            return (
-              <div
-                key={c.collaborationId} // use collaborationId as key
-                className="flex justify-between items-center border p-2 rounded"
-              >
-                <div>
-                  <div className="font-medium">
-                    {user.firstName} {user.lastName}
-                  </div>
-                  <div className="text-sm text-gray-500">{user.email}</div>
-                  <div className="text-sm text-gray-600">Role: {c.role}</div>
-                </div>
-                <button
-                  onClick={() => handleRemoveCollaborator(c.userId)}
-                  className="px-2 py-1 bg-red-500 text-white rounded"
+          {collaborators.length === 0 ? (
+            <p className="text-sm text-gray-500">No collaborators yet</p>
+          ) : (
+            collaborators.map((c) => {
+              const user =
+                allUsers.find((u) => String(u.id) === String(c.userId)) || {};
+              return (
+                <div
+                  key={c.collaborationId}
+                  className="flex justify-between items-center border p-2 rounded"
                 >
-                  Remove
-                </button>
-              </div>
-            );
-          })
-        )}
+                  <div>
+                    <div className="font-medium">
+                      {user.firstName} {user.lastName}
+                    </div>
+                    <div className="text-sm text-gray-500">{user.email}</div>
+                    <div className="text-sm text-gray-600">
+                      Role:{" "}
+                      <select
+                        value={c.role}
+                        onChange={(e) => changeRole(c.userId, e.target.value)}
+                        className="border rounded px-1 py-0.5 text-sm"
+                      >
+                        <option value="VIEWER">Viewer</option>
+                        <option value="EDITOR">Editor</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeCollaborator(c.userId)}
+                    className="px-2 py-1 bg-red-500 text-white rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+              );
+            })
+          )}
 
-        <input
-          value={userSearch}
-          onChange={(e) => setUserSearch(e.target.value)}
-          placeholder="Search users..."
-          className="w-full border rounded p-2"
-        />
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {filteredUsers.map((u) => {
-            const already = collaborators.some((c) => c.userId === u.id);
-            return (
-              <div
-                key={u.id}
-                className="flex justify-between items-center border p-2 rounded"
-              >
-                <div className="flex flex-col">
+          <div className="pt-2">
+            <h3 className="font-medium mb-1">Add Collaborator</h3>
+            {allUsers.map((u) => {
+              const already = collaborators.some(
+                (c) => String(c.userId) === String(u.id)
+              );
+              return (
+                <div
+                  key={u.id}
+                  className="flex justify-between items-center border p-2 rounded mb-1"
+                >
                   <span>
                     {u.firstName} {u.lastName} – {u.email}
                   </span>
-                  <select
-                    value={rolesMap[u.id] || "VIEWER"}
-                    onChange={(e) =>
-                      setRolesMap((prev) => ({
-                        ...prev,
-                        [u.id]: e.target.value,
-                      }))
-                    }
+                  <button
                     disabled={already}
-                    className="border rounded mt-1 text-sm p-1"
+                    onClick={() => addCollaborator(u.id, "VIEWER")}
+                    className={`px-2 py-1 rounded ${
+                      already ? "bg-gray-300" : "bg-blue-500 text-white"
+                    }`}
                   >
-                    <option value="VIEWER">Viewer</option>
-                    <option value="EDITOR">Editor</option>
-                  </select>
+                    {already ? "Added" : "Add"}
+                  </button>
                 </div>
-                <button
-                  disabled={already}
-                  onClick={() => handleAddCollaborator(u.id)}
-                  className={`px-2 py-1 rounded ${
-                    already ? "bg-gray-300" : "bg-blue-500 text-white"
-                  }`}
-                >
-                  {already ? "Added" : "Add"}
-                </button>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="flex justify-between pt-4">
+      {/* Footer */}
+      <div className="flex justify-end pt-4 gap-3">
         <button
-          onClick={handleDelete}
-          className="px-4 py-2 bg-red-600 text-white rounded"
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 border rounded"
         >
-          Delete Form
+          Cancel
         </button>
-        <div className="flex gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 border rounded"
-          >
-            Cancel
-          </button>
+        {canEditForm && (
           <button
             onClick={handleSave}
             className="px-6 py-2 bg-indigo-600 text-white rounded"
@@ -429,7 +427,7 @@ export default function FormEditPage() {
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
-        </div>
+        )}
       </div>
     </div>
   );
