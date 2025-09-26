@@ -3,8 +3,10 @@ package com.djokic.responseserviceff;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
+@EnableFeignClients(basePackages = "com.djokic.responseserviceff.client")
 public class ResponseServiceFfApplication {
 
     public static void main(String[] args) {
