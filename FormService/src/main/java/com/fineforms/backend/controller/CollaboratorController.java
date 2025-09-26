@@ -1,5 +1,6 @@
 package com.fineforms.backend.controller;
 
+import com.fineforms.backend.DTO.CollaboratorDto;
 import com.fineforms.backend.entity.Form;
 import com.fineforms.backend.service.FormService;
 import com.fineforms.backend.entity.Collaborator;
@@ -20,7 +21,7 @@ public class CollaboratorController {
 
     // Add collaborator to form
     @PostMapping
-    public ResponseEntity<Collaborator> addCollaborator(
+    public ResponseEntity<CollaboratorDto> addCollaborator(
             @PathVariable Long formId,
             @RequestParam Long userId,
             @RequestParam CollaboratorRole collaboratorRole,
@@ -40,7 +41,7 @@ public class CollaboratorController {
     public ResponseEntity<Collaborator> updateRole(
             @PathVariable Long formId,
             @PathVariable Long userId,
-            @RequestParam CollaboratorRole role,
+            @RequestParam("collaboratorRole") CollaboratorRole role,
             @RequestParam("currentUserId") Long currentUserId
     ) {
         return ResponseEntity.ok(collaboratorService.updateCollaboratorRole(formId, userId, role, currentUserId));
