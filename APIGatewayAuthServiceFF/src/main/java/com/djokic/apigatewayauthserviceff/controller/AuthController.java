@@ -103,6 +103,27 @@ public class AuthController {
         return formServiceClient.getFormById(id);
     }
 
+    @GetMapping("/form/user/{userId}")
+    ResponseEntity<?> getFormsByUserId(@PathVariable("userId") Long userId, @RequestHeader("Authorization") String authHeader){
+        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        Long userIdFromToken = jwtService.extractAllClaims(token).get("id", Long.class);
+
+        if(!userId.equals(userIdFromToken)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "message", "You are not allowed to get forms for this user",
+                            "status", 403,
+                            "error", "Forbidden"
+                    ));
+        }
+
+        return formServiceClient.getFormsByUserId(userId);
+    }
+
     @GetMapping("/form")
     ResponseEntity<?> getAllForms(){
         return formServiceClient.getAllForms();

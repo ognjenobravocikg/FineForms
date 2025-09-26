@@ -46,4 +46,7 @@ public interface FormServiceClient {
     ResponseEntity<?> removeCollaborator(@PathVariable("formId") Long formId,
                                          @PathVariable("userId") Long userId,
                                          @RequestParam("currentUserId") Long currentUserId);
+
+    @GetMapping("/form/user/{userId}")
+    ResponseEntity<?> getFormsByUserId(@PathVariable Long userId);
 }

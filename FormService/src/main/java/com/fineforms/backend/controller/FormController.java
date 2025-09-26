@@ -29,6 +29,11 @@ public class FormController {
         return ResponseEntity.ok(formService.getForm(id));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Form>> getFormsByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(formService.getFormsForUser(userId));
+    }
+
     @GetMapping
     public ResponseEntity<List<Form>> getAllForms() {
         return ResponseEntity.ok(formService.getAllForms());

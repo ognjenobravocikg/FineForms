@@ -21,6 +21,7 @@ import com.fineforms.backend.client.UserServiceClient;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
@@ -309,4 +310,17 @@ public class FormService {
         return formRepository.save(form);
     }
 
+    @Transactional(readOnly = true)
+    public List<Form> getFormsForUser(Long userId) {
+        List<Form> ownedForms = formRepository.findByOwnerId(userId);
+
+        List<Form> collaboratorForms = collaboratorRepository.findByUserId(userId)
+                .stream()
+                .map(Collaborator::getForm)
+                .toList();
+
+        return Stream.concat(ownedForms.stream(), collaboratorForms.stream())
+                .distinct()
+                .toList();
+    }
 }

@@ -12,5 +12,7 @@ public interface CollaboratorRepository extends JpaRepository<Collaborator, Long
     List<Collaborator> findByFormId(Long formId);
     Optional<Collaborator> findByFormIdAndUserId(Long formId, Long userId);
     List<Long> findFormsByUserId(Long collaboratorId);
+
+    Optional<Collaborator> findByUserId(Long userId);
 }
 
