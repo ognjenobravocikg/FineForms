@@ -4,6 +4,8 @@ import com.djokic.responseserviceff.dto.CreateResponseDTO;
 import com.djokic.responseserviceff.dto.ResponseDTO;
 import com.djokic.responseserviceff.service.ResponseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,4 +54,14 @@ public class ResponseController {
         responseService.deleteResponse(id, currentUserId);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportResponses(@RequestParam Long formId) {
+        byte[] csvData = responseService.exportResponsesToCsv(formId);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"responses.csv\"")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(csvData);
+    }
+
 }

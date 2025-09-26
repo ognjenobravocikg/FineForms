@@ -21,7 +21,7 @@ public class Response {
     @Column(nullable = false)
     private Long formId;
 
-    @Column(nullable = false)//anonymous users have id = 0
+    @Column(nullable = false) // anonymous users have id = 0
     private Long userId;
 
     private String userEmail;
@@ -31,13 +31,22 @@ public class Response {
 
     private LocalDateTime submittedAt;
 
-    private Boolean isAuthenticated;
+    @Column
+    private Boolean authenticated;
 
     @PrePersist
     protected void onCreate() {
         submittedAt = LocalDateTime.now();
-        if (this.isAuthenticated == null) {
-            this.isAuthenticated = this.userId != null && this.userId > 0;
+        if (this.authenticated == null) {
+            this.authenticated = this.userId != null && this.userId > 0;
         }
+    }
+
+    public Boolean isAuthenticated() {
+        return this.authenticated;
+    }
+
+    public void setAuthenticated(Boolean authenticated) {
+        this.authenticated = authenticated;
     }
 }
