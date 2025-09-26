@@ -28,7 +28,7 @@ public interface QuestionMapper {
     default List<String> mapOptionsToStrings(List<Option> options) {
         if (options == null) return null;
         return options.stream()
-                .map(Option::getLabel)
+                .map(Option::getText)
                 .toList();
     }
 
@@ -37,7 +37,7 @@ public interface QuestionMapper {
         return optionLabels.stream()
                 .map(label -> {
                     Option opt = new Option();
-                    opt.setLabel(label);
+                    opt.setText(label);
                     return opt;
                 })
                 .toList();

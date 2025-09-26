@@ -56,6 +56,9 @@ public class FormService {
                 Question q = new Question();
                 q.setText(qdto.getText());
                 q.setRequiredQuestion(qdto.isRequired());
+                if (qdto.getType() == null) {
+                    throw new IllegalArgumentException("Invalid or missing question type");
+                }
                 q.setType(qdto.getType());
                 q.setPosition(pos++);
                 q.setNumberMin(qdto.getNumberMin());
@@ -66,8 +69,10 @@ public class FormService {
                     int ord = 0;
                     for (OptionDto optDto : qdto.getOptions()) {
                         Option opt = new Option();
-                        opt.setLabel(optDto.getText());
-                        opt.setOrdinal(ord++);
+                        opt.setText(optDto.getText());
+                        opt.setOrder(ord++);
+                        opt.setCorrect(optDto.isCorrect());
+                        opt.setImageUrl(optDto.getImageUrl());
                         q.addOption(opt);
                     }
                 }
@@ -99,13 +104,86 @@ public class FormService {
         Form f = getForm(id);
         Optional<Collaborator> collab = collaboratorRepository.findByFormIdAndUserId(id, currentUserId);
         if(!f.getOwnerId().equals(currentUserId) || (
-                collab.isPresent() && collab.get().getRole()==CollaboratorRole.EDITOR
+                collab.isEmpty() || collab.get().getRole()!=CollaboratorRole.EDITOR
         )) {
             throw new NotAuthorizedException("Only the owner can update the form.");
         }
         if(!dto.getTitle().isEmpty() && !dto.getTitle().equalsIgnoreCase(f.getTitle())) f.setTitle(dto.getTitle());
         f.setDescription(dto.getDescription());
         f.setRequiresAuth(dto.isRequiresAuth());
+
+        List<Long> incomingQuestionIds = dto.getQuestions() != null
+                ? dto.getQuestions().stream().map(CreateQuestionDto::getId).toList()
+                : List.of();
+
+        f.getQuestions().removeIf(q -> !incomingQuestionIds.contains(q.getId()));
+
+
+        int pos = 0;
+        if (dto.getQuestions() != null) {
+            for (CreateQuestionDto qdto : dto.getQuestions()) {
+                Question q;
+
+                if (qdto.getId() != null) {
+                    q = f.getQuestions().stream()
+                            .filter(existing -> existing.getId().equals(qdto.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (q == null) {
+                        throw new IllegalArgumentException("Question not found: " + qdto.getId());
+                    }
+                } else {
+                    q = new Question();
+                    f.addQuestion(q);
+                }
+
+                q.setText(qdto.getText());
+                q.setRequiredQuestion(qdto.isRequired());
+
+                if (qdto.getType() == null) {
+                    throw new IllegalArgumentException("Invalid or missing question type");
+                }
+                q.setType(qdto.getType());
+                q.setPosition(pos++);
+                q.setNumberMin(qdto.getNumberMin());
+                q.setNumberMax(qdto.getNumberMax());
+                q.setNumberStep(qdto.getNumberStep());
+
+                List<Long> incomingOptionIds = qdto.getOptions() != null
+                        ? qdto.getOptions().stream().map(OptionDto::getId).toList()
+                        : List.of();
+
+                q.getOptions().removeIf(opt -> !incomingOptionIds.contains(opt.getId()));
+
+                if (qdto.getOptions() != null) {
+                    int ord = 0;
+                    for (OptionDto optDto : qdto.getOptions()) {
+                        Option opt;
+
+                        if (optDto.getId() != null) {
+                            opt = q.getOptions().stream()
+                                    .filter(existing -> existing.getId().equals(optDto.getId()))
+                                    .findFirst()
+                                    .orElse(null);
+
+                            if (opt == null) {
+                                throw new IllegalArgumentException("Option not found: " + optDto.getId());
+                            }
+                        } else {
+                            opt = new Option();
+                            q.addOption(opt);
+                        }
+
+                        opt.setText(optDto.getText());
+                        opt.setOrder(ord++);
+                        opt.setCorrect(optDto.isCorrect());
+                        opt.setImageUrl(optDto.getImageUrl());
+                    }
+                }
+            }
+        }
+
         return formRepository.save(f);
     }
 
@@ -136,8 +214,8 @@ public class FormService {
             int ord = 0;
             for (OptionDto optDto : dto.getOptions()) {
                 Option opt = new Option();
-                opt.setLabel(optDto.getText());
-                opt.setOrdinal(ord++);
+                opt.setText(optDto.getText());
+                opt.setOrder(ord++);
                 q.addOption(opt);
             }
         }
@@ -168,8 +246,8 @@ public class FormService {
             int ord = 0;
             for (OptionDto optDto : dto.getOptions()) {
                 Option opt = new Option();
-                opt.setLabel(optDto.getText());
-                opt.setOrdinal(ord++);
+                opt.setText(optDto.getText());
+                opt.setOrder(ord++);
                 q.addOption(opt);
             }
         }
@@ -203,8 +281,10 @@ public class FormService {
 
         for (Option origOpt : original.getOptions()) {
             Option newOpt = new Option();
-            newOpt.setLabel(origOpt.getLabel());
-            newOpt.setOrdinal(origOpt.getOrdinal());
+            newOpt.setText(origOpt.getText());
+            newOpt.setOrder(origOpt.getOrder());
+            newOpt.setCorrect(origOpt.isCorrect());
+            newOpt.setImageUrl(origOpt.getImageUrl());
             copy.addOption(newOpt);
         }
 

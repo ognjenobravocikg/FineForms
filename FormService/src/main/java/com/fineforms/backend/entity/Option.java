@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @Entity
 @Table(name = "options")
 @Getter
@@ -18,12 +17,23 @@ public class Option {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String label;
-    private int ordinal;
+    // Tekst opcije (za text-based answer)
+    @Column(nullable = false)
+    private String text;
 
-    @ManyToOne
-    @JoinColumn(name = "question_id")
+    // Redosled prikazivanja
+    @Column(name = "ord")
+    private int order;
+
+    // Da li je tačan odgovor (koristi se kod kviz pitanja)
+    @Column(name = "is_correct")
+    private boolean isCorrect;
+
+    // Ako je opcija tipa slika
+    private String imageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
     @JsonIgnore
     private Question question;
-
 }

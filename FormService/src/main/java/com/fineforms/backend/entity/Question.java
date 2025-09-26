@@ -1,6 +1,7 @@
 package com.fineforms.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fineforms.backend.enums.QuestionTypeEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +23,10 @@ public class Question {
 
     private String text;
     private boolean requiredQuestion;
-    private String type;
+
+    @Enumerated(EnumType.STRING)
+    private QuestionTypeEnum type;
+
     private int position;
     private String imageUrl;
     private int numberMin;
