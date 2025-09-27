@@ -9,7 +9,7 @@ export default function FormCard({
   extraActions,
 }) {
   return (
-    <div className="bg-gray-50 border rounded-lg p-6 shadow-sm hover:shadow-md transition md:hover:bg-animated-gradient">
+    <div className="bg-gray-50 border rounded-lg p-6 shadow-sm hover:shadow-md transition md:hover:bg-indigo-50">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-xl font-semibold text-gray-800">{form.title}</h3>

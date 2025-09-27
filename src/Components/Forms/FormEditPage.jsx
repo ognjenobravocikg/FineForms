@@ -32,7 +32,7 @@ export default function FormEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const [currentRole, setCurrentRole] = useState("VIEWER"); // default fallback
+  const [currentRole, setCurrentRole] = useState("VIEWER");
   const [formOwnerId, setFormOwnerId] = useState(null);
 
   // --- Load form and collaborators ---
@@ -42,92 +42,19 @@ export default function FormEditPage() {
     async function loadData() {
       try {
         setLoading(true);
-
-        // Fetch form
         const formRes = await fetch(`${API_BASE}/form/${formId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!formRes.ok) throw new Error("Failed to fetch form");
         const form = await parseResponse(formRes);
 
-        // --- Determine actual ownerId ---
-        const ownerIdCandidate =
-          form?.ownerId ??
-          form?.owner?.id ??
-          form?.owner?.userId ??
-          form?.ownerIdString ??
-          form?.owner?.ownerId ??
-          null;
-
-        if (ownerIdCandidate) {
-          try {
-            const ownerRes = await fetch(
-              `${API_BASE}/users/${ownerIdCandidate}/details`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            if (ownerRes.ok) {
-              const owner = await parseResponse(ownerRes);
-              console.log(
-                "Form owner (from users/details):",
-                owner?.firstName ?? "<no firstName>",
-                owner?.lastName ?? "<no lastName>"
-              );
-            } else {
-              if (
-                form?.owner &&
-                (form.owner.firstName || form.owner.lastName)
-              ) {
-                console.log(
-                  "Form owner (from form payload):",
-                  form.owner.firstName,
-                  form.owner.lastName
-                );
-              } else {
-                console.warn(
-                  `Owner lookup returned ${ownerRes.status}. No owner name available in payload.`
-                );
-              }
-            }
-          } catch (err) {
-            console.warn("Owner lookup failed:", err);
-            if (form?.owner && (form.owner.firstName || form.owner.lastName)) {
-              console.log(
-                "Form owner (from form payload):",
-                form.owner.firstName,
-                form.owner.lastName
-              );
-            } else {
-              console.log("Form owner: not available");
-            }
-          }
-        } else if (
-          form?.owner &&
-          (form.owner.firstName || form.owner.lastName)
-        ) {
-          console.log(
-            "Form owner (from form payload):",
-            form.owner.firstName,
-            form.owner.lastName
-          );
-        } else {
-          console.log(
-            "Form owner: not provided in form payload and no ownerId found."
-          );
-        }
-        // --- end snippet
-
-        // Set title & description
         setTitle(form.title || "");
         setDescription(form.description || "");
 
-        // --- FIXED ownerId setting ---
-        const resolvedOwnerId =
-          form.userId ?? form.ownerId ?? ownerIdCandidate ?? null;
-        setFormOwnerId(resolvedOwnerId);
+        const ownerIdCandidate =
+          form?.ownerId ?? form?.owner?.id ?? form?.userId ?? null;
+        setFormOwnerId(ownerIdCandidate);
 
-        // Set questions
         setQuestions(
           (form.questions || [])
             .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
@@ -149,15 +76,13 @@ export default function FormEditPage() {
             }))
         );
 
-        // Fetch collaborators
         const collabRes = await fetch(`${API_BASE}/form/${formId}/collab`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const collabs = collabRes.ok ? await parseResponse(collabRes) : [];
         setCollaborators(collabs);
 
-        // --- FIXED currentRole logic ---
-        if (String(resolvedOwnerId) === String(currentUserId)) {
+        if (String(ownerIdCandidate) === String(currentUserId)) {
           setCurrentRole("OWNER");
         } else {
           const myCollab = collabs.find(
@@ -166,7 +91,6 @@ export default function FormEditPage() {
           setCurrentRole(myCollab?.role || "VIEWER");
         }
 
-        // Fetch all users
         const usersRes = await fetch(`${API_BASE}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -228,11 +152,10 @@ export default function FormEditPage() {
     const [moved] = newQuestions.splice(result.source.index, 1);
     newQuestions.splice(result.destination.index, 0, moved);
 
-    const reindexed = newQuestions.map((q, i) => ({ ...q, position: i }));
-    setQuestions(reindexed);
+    setQuestions(newQuestions.map((q, i) => ({ ...q, position: i })));
   };
 
-  // --- Collaborator handlers (only OWNER) ---
+  // --- Collaborator handlers ---
   const addCollaborator = async (userIdToAdd, role = "VIEWER") => {
     if (currentRole !== "OWNER") return;
     try {
@@ -302,7 +225,6 @@ export default function FormEditPage() {
     }
   };
 
-  // --- Save form ---
   const handleSave = async () => {
     if (currentRole === "VIEWER") return;
     setSaving(true);
@@ -358,165 +280,171 @@ export default function FormEditPage() {
     }
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="p-6 text-gray-600">Loading...</div>;
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
 
   const canEdit = currentRole === "OWNER" || currentRole === "EDITOR";
   const isOwner = currentRole === "OWNER";
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <FormHeader
-        title={title}
-        setTitle={canEdit ? setTitle : () => {}}
-        description={description}
-        setDescription={canEdit ? setDescription : () => {}}
-        readOnly={!canEdit}
-      />
+    <div className="min-h-screen bg-indigo-400 py-8">
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 space-y-8">
+        {/* Form Header */}
+        <FormHeader
+          title={title}
+          setTitle={canEdit ? setTitle : () => {}}
+          description={description}
+          setDescription={canEdit ? setDescription : () => {}}
+          readOnly={!canEdit}
+        />
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="questions">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-4"
-            >
-              {questions.map((q, i) => (
-                <Draggable
-                  key={q.id ?? i}
-                  draggableId={String(q.id ?? i)}
-                  index={i}
-                  isDragDisabled={!canEdit}
-                >
-                  {(prov) => (
-                    <div
-                      ref={prov.innerRef}
-                      {...prov.draggableProps}
-                      {...prov.dragHandleProps}
-                    >
-                      <QuestionCard
-                        question={q}
-                        updateQuestion={
-                          canEdit ? (newQ) => updateQuestion(i, newQ) : () => {}
-                        }
-                        removeQuestion={
-                          canEdit ? () => removeQuestion(i) : undefined
-                        }
-                        readOnly={!canEdit}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-
-      {canEdit && (
-        <button
-          onClick={addQuestion}
-          className="px-4 py-2 border rounded-lg hover:bg-gray-100"
-        >
-          + Add Question
-        </button>
-      )}
-
-      {/* Collaborators Section (only owner) */}
-      {isOwner && (
-        <div className="space-y-3 border-t pt-4">
-          <h2 className="text-lg font-semibold">Collaborators</h2>
-
-          {collaborators.length === 0 ? (
-            <p className="text-sm text-gray-500">No collaborators yet</p>
-          ) : (
-            collaborators.map((c) => {
-              const user =
-                allUsers.find((u) => String(u.id) === String(c.userId)) || {};
-              return (
-                <div
-                  key={c.collaborationId}
-                  className="flex justify-between items-center border p-2 rounded"
-                >
-                  <div>
-                    <div className="font-medium">
-                      {user.firstName} {user.lastName}
-                    </div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                    <div className="text-sm text-gray-600">
-                      Role:{" "}
-                      <select
-                        value={c.role}
-                        onChange={(e) => changeRole(c.userId, e.target.value)}
-                        className="border rounded px-1 py-0.5 text-sm"
+        {/* Questions */}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="questions">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-4"
+              >
+                {questions.map((q, i) => (
+                  <Draggable
+                    key={q.id ?? i}
+                    draggableId={String(q.id ?? i)}
+                    index={i}
+                    isDragDisabled={!canEdit}
+                  >
+                    {(prov) => (
+                      <div
+                        ref={prov.innerRef}
+                        {...prov.draggableProps}
+                        {...prov.dragHandleProps}
+                        className=""
                       >
-                        <option value="VIEWER">Viewer</option>
-                        <option value="EDITOR">Editor</option>
-                      </select>
-                    </div>
-                  </div>
+                        <QuestionCard
+                          question={q}
+                          updateQuestion={
+                            canEdit
+                              ? (newQ) => updateQuestion(i, newQ)
+                              : () => {}
+                          }
+                          removeQuestion={
+                            canEdit ? () => removeQuestion(i) : undefined
+                          }
+                          readOnly={!canEdit}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
 
-                  <button
-                    onClick={() => removeCollaborator(c.userId)}
-                    className="px-2 py-1 bg-red-500 text-white rounded"
-                  >
-                    Remove
-                  </button>
-                </div>
-              );
-            })
-          )}
-
-          {/* Add Collaborator Section */}
-          <div className="pt-2">
-            <h3 className="font-medium mb-1">Add Collaborator</h3>
-            {allUsers.map((u) => {
-              const already = collaborators.some(
-                (c) => String(c.userId) === String(u.id)
-              );
-              return (
-                <div
-                  key={u.id}
-                  className="flex justify-between items-center border p-2 rounded mb-1"
-                >
-                  <span>
-                    {u.firstName} {u.lastName} – {u.email}
-                  </span>
-                  <button
-                    disabled={already}
-                    onClick={() => addCollaborator(u.id, "VIEWER")}
-                    className={`px-2 py-1 rounded ${
-                      already ? "bg-gray-300" : "bg-blue-500 text-white"
-                    }`}
-                  >
-                    {already ? "Added" : "Add"}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Footer Buttons */}
-      <div className="flex justify-end pt-4 gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="px-4 py-2 border rounded"
-        >
-          {canEdit ? "Cancel" : "Back"}
-        </button>
         {canEdit && (
           <button
-            onClick={handleSave}
-            className="px-6 py-2 bg-indigo-600 text-white rounded"
-            disabled={saving}
+            onClick={addQuestion}
+            className="px-4 py-2 border rounded-lg hover:bg-gray-100 transition"
           >
-            {saving ? "Saving..." : "Save Changes"}
+            + Add Question
           </button>
         )}
+
+        {/* Collaborators Section */}
+        {isOwner && (
+          <div className="space-y-4 border-t pt-4">
+            <h2 className="text-lg font-semibold">Collaborators</h2>
+
+            {collaborators.length === 0 ? (
+              <p className="text-sm text-gray-500">No collaborators yet</p>
+            ) : (
+              collaborators.map((c) => {
+                const user =
+                  allUsers.find((u) => String(u.id) === String(c.userId)) || {};
+                return (
+                  <div
+                    key={c.collaborationId}
+                    className="flex justify-between items-center border p-2 rounded-md"
+                  >
+                    <div>
+                      <div className="font-medium">
+                        {user.firstName} {user.lastName}
+                      </div>
+                      <div className="text-sm text-gray-500">{user.email}</div>
+                      <div className="text-sm text-gray-600">
+                        Role:{" "}
+                        <select
+                          value={c.role}
+                          onChange={(e) => changeRole(c.userId, e.target.value)}
+                          className="border rounded px-1 py-0.5 text-sm"
+                        >
+                          <option value="VIEWER">Viewer</option>
+                          <option value="EDITOR">Editor</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeCollaborator(c.userId)}
+                      className="px-2 py-1 bg-red-500 text-white rounded"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })
+            )}
+
+            {/* Add Collaborator */}
+            <div className="pt-2 space-y-1">
+              <h3 className="font-medium mb-1">Add Collaborator</h3>
+              {allUsers.map((u) => {
+                const already = collaborators.some(
+                  (c) => String(c.userId) === String(u.id)
+                );
+                return (
+                  <div
+                    key={u.id}
+                    className="flex justify-between items-center border p-2 rounded mb-1"
+                  >
+                    <span>
+                      {u.firstName} {u.lastName} – {u.email}
+                    </span>
+                    <button
+                      disabled={already}
+                      onClick={() => addCollaborator(u.id, "VIEWER")}
+                      className={`px-2 py-1 rounded ${
+                        already ? "bg-gray-300" : "bg-indigo-500 text-white"
+                      }`}
+                    >
+                      {already ? "Added" : "Add"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Footer Buttons */}
+        <div className="flex justify-end pt-4 gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 border rounded"
+          >
+            {canEdit ? "Cancel" : "Back"}
+          </button>
+          {canEdit && (
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 bg-indigo-600 text-white rounded"
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

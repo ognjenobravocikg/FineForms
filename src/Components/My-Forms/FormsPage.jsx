@@ -259,7 +259,7 @@ export default function FormsPage() {
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-50 p-6">
+    <div className="min-h-screen flex flex-col items-center bg-indigo-400 p-6">
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-8 mb-8">
         {user && (
           <div className="text-center mb-6">

@@ -154,36 +154,49 @@ export default function AnswerFormPage() {
   if (!form) return null;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <div className="bg-white shadow-lg rounded-xl p-8 space-y-4">
-        <h2 className="text-3xl font-bold text-gray-800">{form.title}</h2>
+    <div className="min-h-screen bg-gray-50 p-6 md:p-12 space-y-8">
+      {/* Form Title Card */}
+      <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 shadow-md rounded-2xl p-8 space-y-4 border border-indigo-100">
+        <h2 className="text-3xl font-bold text-indigo-900">{form.title}</h2>
+        {form.description && (
+          <p className="text-gray-700 text-lg">{form.description}</p>
+        )}
       </div>
 
-      <div className="space-y-4">
+      {/* Questions */}
+      <div className="space-y-6">
         {form.questions.map((q, i) => {
           const key = `q${i + 1}`;
           return (
-            <AnswerCard
+            <div
               key={q.id ?? i}
-              question={q}
-              value={answers[key]}
-              onChange={(val) => updateAnswer(i, val)}
-            />
+              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition"
+            >
+              <div className="text-gray-500 text-sm mb-2">
+                Question {i + 1} of {form.questions.length}
+              </div>
+              <AnswerCard
+                question={q}
+                value={answers[key]}
+                onChange={(val) => updateAnswer(i, val)}
+              />
+            </div>
           );
         })}
       </div>
 
-      <div className="flex gap-3 mt-6 justify-end">
+      {/* Submit Buttons */}
+      <div className="flex gap-3 mt-8 justify-end">
         <button
           onClick={handleSubmit}
           disabled={submitting || !userEmail}
-          className="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-60"
+          className="px-6 py-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 disabled:opacity-50 transition"
         >
           {submitting ? "Submitting..." : "Submit Response"}
         </button>
         <button
           onClick={() => navigate("/")}
-          className="px-6 py-2 border rounded-xl hover:bg-gray-100"
+          className="px-6 py-3 border rounded-2xl hover:bg-gray-100 transition"
         >
           Cancel
         </button>
