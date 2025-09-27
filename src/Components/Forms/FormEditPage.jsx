@@ -28,10 +28,12 @@ export default function FormEditPage() {
   const [questions, setQuestions] = useState([]);
   const [collaborators, setCollaborators] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  const [ownerId, setOwnerId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+
+  const [currentRole, setCurrentRole] = useState("VIEWER"); // default fallback
+  const [formOwnerId, setFormOwnerId] = useState(null);
 
   // --- Load form and collaborators ---
   useEffect(() => {
@@ -41,17 +43,91 @@ export default function FormEditPage() {
       try {
         setLoading(true);
 
-        // --- Fetch form ---
+        // Fetch form
         const formRes = await fetch(`${API_BASE}/form/${formId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!formRes.ok) throw new Error("Failed to fetch form");
         const form = await parseResponse(formRes);
 
+        // --- Determine actual ownerId ---
+        const ownerIdCandidate =
+          form?.ownerId ??
+          form?.owner?.id ??
+          form?.owner?.userId ??
+          form?.ownerIdString ??
+          form?.owner?.ownerId ??
+          null;
+
+        if (ownerIdCandidate) {
+          try {
+            const ownerRes = await fetch(
+              `${API_BASE}/users/${ownerIdCandidate}/details`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            if (ownerRes.ok) {
+              const owner = await parseResponse(ownerRes);
+              console.log(
+                "Form owner (from users/details):",
+                owner?.firstName ?? "<no firstName>",
+                owner?.lastName ?? "<no lastName>"
+              );
+            } else {
+              if (
+                form?.owner &&
+                (form.owner.firstName || form.owner.lastName)
+              ) {
+                console.log(
+                  "Form owner (from form payload):",
+                  form.owner.firstName,
+                  form.owner.lastName
+                );
+              } else {
+                console.warn(
+                  `Owner lookup returned ${ownerRes.status}. No owner name available in payload.`
+                );
+              }
+            }
+          } catch (err) {
+            console.warn("Owner lookup failed:", err);
+            if (form?.owner && (form.owner.firstName || form.owner.lastName)) {
+              console.log(
+                "Form owner (from form payload):",
+                form.owner.firstName,
+                form.owner.lastName
+              );
+            } else {
+              console.log("Form owner: not available");
+            }
+          }
+        } else if (
+          form?.owner &&
+          (form.owner.firstName || form.owner.lastName)
+        ) {
+          console.log(
+            "Form owner (from form payload):",
+            form.owner.firstName,
+            form.owner.lastName
+          );
+        } else {
+          console.log(
+            "Form owner: not provided in form payload and no ownerId found."
+          );
+        }
+        // --- end snippet
+
+        // Set title & description
         setTitle(form.title || "");
         setDescription(form.description || "");
-        setOwnerId(form.ownerId ?? form.owner?.id ?? null);
 
+        // --- FIXED ownerId setting ---
+        const resolvedOwnerId =
+          form.userId ?? form.ownerId ?? ownerIdCandidate ?? null;
+        setFormOwnerId(resolvedOwnerId);
+
+        // Set questions
         setQuestions(
           (form.questions || [])
             .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
@@ -73,14 +149,24 @@ export default function FormEditPage() {
             }))
         );
 
-        // --- Fetch collaborators ---
+        // Fetch collaborators
         const collabRes = await fetch(`${API_BASE}/form/${formId}/collab`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const collabs = collabRes.ok ? await parseResponse(collabRes) : [];
         setCollaborators(collabs);
 
-        // --- Fetch all users ---
+        // --- FIXED currentRole logic ---
+        if (String(resolvedOwnerId) === String(currentUserId)) {
+          setCurrentRole("OWNER");
+        } else {
+          const myCollab = collabs.find(
+            (c) => String(c.userId) === String(currentUserId)
+          );
+          setCurrentRole(myCollab?.role || "VIEWER");
+        }
+
+        // Fetch all users
         const usersRes = await fetch(`${API_BASE}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -99,18 +185,9 @@ export default function FormEditPage() {
     loadData();
   }, [formId, token, navigate]);
 
-  // --- Determine roles ---
-  const isOwner = String(currentUserId) === String(ownerId);
-  const myCollab = collaborators.find(
-    (c) => String(c.userId) === String(currentUserId)
-  );
-  const myRole = myCollab?.role ?? (isOwner ? "OWNER" : "VIEWER");
-
-  const canEditForm = isOwner || myRole === "EDITOR";
-  const canManageCollabs = isOwner;
-
   // --- Question handlers ---
   const addQuestion = () => {
+    if (currentRole === "VIEWER") return;
     setQuestions((prev) => [
       ...prev,
       {
@@ -129,7 +206,7 @@ export default function FormEditPage() {
   };
 
   const updateQuestion = (index, q) => {
-    if (!canEditForm) return;
+    if (currentRole === "VIEWER") return;
     setQuestions((prev) => {
       const next = [...prev];
       next[index] = { ...q, position: index };
@@ -138,26 +215,26 @@ export default function FormEditPage() {
   };
 
   const removeQuestion = (index) => {
-    if (!canEditForm) return;
+    if (currentRole === "VIEWER") return;
     setQuestions((prev) =>
       prev.filter((_, i) => i !== index).map((q, i) => ({ ...q, position: i }))
     );
   };
 
   const onDragEnd = (result) => {
-    if (!canEditForm) return;
-    if (!result.destination) return;
+    if (!result.destination || currentRole === "VIEWER") return;
 
     const newQuestions = Array.from(questions);
     const [moved] = newQuestions.splice(result.source.index, 1);
     newQuestions.splice(result.destination.index, 0, moved);
 
-    setQuestions(newQuestions.map((q, i) => ({ ...q, position: i })));
+    const reindexed = newQuestions.map((q, i) => ({ ...q, position: i }));
+    setQuestions(reindexed);
   };
 
-  // --- Collaborator handlers ---
+  // --- Collaborator handlers (only OWNER) ---
   const addCollaborator = async (userIdToAdd, role = "VIEWER") => {
-    if (!canManageCollabs) return;
+    if (currentRole !== "OWNER") return;
     try {
       const res = await fetch(`${API_BASE}/form/${formId}/collab`, {
         method: "POST",
@@ -168,10 +245,12 @@ export default function FormEditPage() {
         body: JSON.stringify({ userId: userIdToAdd, role }),
       });
       if (!res.ok) throw new Error("Failed to add collaborator");
-      const updated = await fetch(`${API_BASE}/form/${formId}/collab`, {
+      const updatedCollabs = await fetch(`${API_BASE}/form/${formId}/collab`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCollaborators(updated.ok ? await parseResponse(updated) : []);
+      setCollaborators(
+        updatedCollabs.ok ? await parseResponse(updatedCollabs) : []
+      );
     } catch (err) {
       console.error(err);
       alert("Add collaborator failed: " + err.message);
@@ -179,7 +258,7 @@ export default function FormEditPage() {
   };
 
   const removeCollaborator = async (userIdToRemove) => {
-    if (!canManageCollabs) return;
+    if (currentRole !== "OWNER") return;
     if (!window.confirm("Remove collaborator?")) return;
     try {
       const res = await fetch(
@@ -200,13 +279,16 @@ export default function FormEditPage() {
   };
 
   const changeRole = async (userId, newRole) => {
-    if (!canManageCollabs) return;
+    if (currentRole !== "OWNER") return;
     try {
       const res = await fetch(
         `${API_BASE}/form/${formId}/collab/${userId}/update-role?collaboratorRole=${encodeURIComponent(
           newRole
         )}`,
-        { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       if (!res.ok) throw new Error("Failed to update role");
       setCollaborators((prev) =>
@@ -222,7 +304,7 @@ export default function FormEditPage() {
 
   // --- Save form ---
   const handleSave = async () => {
-    if (!canEditForm) return;
+    if (currentRole === "VIEWER") return;
     setSaving(true);
     try {
       const payload = {
@@ -279,18 +361,19 @@ export default function FormEditPage() {
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
 
+  const canEdit = currentRole === "OWNER" || currentRole === "EDITOR";
+  const isOwner = currentRole === "OWNER";
+
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      {/* Header */}
       <FormHeader
         title={title}
-        setTitle={canEditForm ? setTitle : undefined}
+        setTitle={canEdit ? setTitle : () => {}}
         description={description}
-        setDescription={canEditForm ? setDescription : undefined}
-        readOnly={!canEditForm}
+        setDescription={canEdit ? setDescription : () => {}}
+        readOnly={!canEdit}
       />
 
-      {/* Questions */}
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="questions">
           {(provided) => (
@@ -304,6 +387,7 @@ export default function FormEditPage() {
                   key={q.id ?? i}
                   draggableId={String(q.id ?? i)}
                   index={i}
+                  isDragDisabled={!canEdit}
                 >
                   {(prov) => (
                     <div
@@ -313,9 +397,13 @@ export default function FormEditPage() {
                     >
                       <QuestionCard
                         question={q}
-                        updateQuestion={(newQ) => updateQuestion(i, newQ)}
-                        removeQuestion={() => removeQuestion(i)}
-                        readOnly={!canEditForm}
+                        updateQuestion={
+                          canEdit ? (newQ) => updateQuestion(i, newQ) : () => {}
+                        }
+                        removeQuestion={
+                          canEdit ? () => removeQuestion(i) : undefined
+                        }
+                        readOnly={!canEdit}
                       />
                     </div>
                   )}
@@ -327,8 +415,7 @@ export default function FormEditPage() {
         </Droppable>
       </DragDropContext>
 
-      {/* Add Question */}
-      {canEditForm && (
+      {canEdit && (
         <button
           onClick={addQuestion}
           className="px-4 py-2 border rounded-lg hover:bg-gray-100"
@@ -337,8 +424,8 @@ export default function FormEditPage() {
         </button>
       )}
 
-      {/* Collaborators */}
-      {canManageCollabs && (
+      {/* Collaborators Section (only owner) */}
+      {isOwner && (
         <div className="space-y-3 border-t pt-4">
           <h2 className="text-lg font-semibold">Collaborators</h2>
 
@@ -370,6 +457,7 @@ export default function FormEditPage() {
                       </select>
                     </div>
                   </div>
+
                   <button
                     onClick={() => removeCollaborator(c.userId)}
                     className="px-2 py-1 bg-red-500 text-white rounded"
@@ -381,6 +469,7 @@ export default function FormEditPage() {
             })
           )}
 
+          {/* Add Collaborator Section */}
           <div className="pt-2">
             <h3 className="font-medium mb-1">Add Collaborator</h3>
             {allUsers.map((u) => {
@@ -411,15 +500,15 @@ export default function FormEditPage() {
         </div>
       )}
 
-      {/* Footer */}
+      {/* Footer Buttons */}
       <div className="flex justify-end pt-4 gap-3">
         <button
           onClick={() => navigate(-1)}
           className="px-4 py-2 border rounded"
         >
-          Cancel
+          {canEdit ? "Cancel" : "Back"}
         </button>
-        {canEditForm && (
+        {canEdit && (
           <button
             onClick={handleSave}
             className="px-6 py-2 bg-indigo-600 text-white rounded"

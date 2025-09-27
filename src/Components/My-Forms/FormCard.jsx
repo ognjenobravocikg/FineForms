@@ -9,7 +9,7 @@ export default function FormCard({
   extraActions,
 }) {
   return (
-    <div className="bg-gray-50 border rounded-lg p-6 shadow-sm hover:shadow-md transition">
+    <div className="bg-gray-50 border rounded-lg p-6 shadow-sm hover:shadow-md transition md:hover:bg-animated-gradient">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-xl font-semibold text-gray-800">{form.title}</h3>
@@ -23,25 +23,16 @@ export default function FormCard({
             onClick={onEdit}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100"
           >
-            Edit
+            View
           </button>
         )}
 
         {onViewButton && (
           <button
             onClick={onViewButton}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+            className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-indigo-300 rounded-lg font-semibold py-2 px-4 rounded"
           >
             View All Responses
-          </button>
-        )}
-
-        {onDelete && (
-          <button
-            onClick={onDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 ml-auto"
-          >
-            Delete
           </button>
         )}
       </div>

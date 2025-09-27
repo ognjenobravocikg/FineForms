@@ -4,6 +4,15 @@ import AnswerCard from "./AnswerCard.jsx";
 
 const API_BASE = "http://localhost:8080/api";
 
+// Simple JWT decoder to extract payload
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch (e) {
+    return null;
+  }
+}
+
 export default function AnswerFormPage() {
   const { formId } = useParams();
   const navigate = useNavigate();
@@ -17,7 +26,15 @@ export default function AnswerFormPage() {
   const [userId, setUserId] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
 
-  // Fetch form on mount
+  // Decode JWT to get userId
+  useEffect(() => {
+    if (!token) return;
+    const decoded = parseJwt(token);
+    const uid = decoded?.id ?? null;
+    setUserId(uid);
+  }, [token]);
+
+  // Fetch form
   useEffect(() => {
     const fetchForm = async () => {
       setLoading(true);
@@ -50,34 +67,31 @@ export default function AnswerFormPage() {
     fetchForm();
   }, [formId, token]);
 
-  // Fetch user details on mount
+  // Fetch user email
   useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (!token) return;
+    const fetchUserEmail = async () => {
+      if (!userId || !token) return;
 
-      const storedUser = localStorage.getItem("user");
-      const userObj = storedUser ? JSON.parse(storedUser) : null;
-      const uid = userObj?.id ?? null;
-      setUserId(uid);
-
-      if (uid) {
-        try {
-          const res = await fetch(`${API_BASE}/users/${uid}/details/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (!res.ok) throw new Error("Failed to fetch user details");
-          const data = await res.json();
-          setUserEmail(data.email ?? null);
-
-          console.log("Fetched userEmail:", data.email);
-        } catch (err) {
-          console.error("Error fetching user details:", err);
-        }
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/users/${userId}/details`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!res.ok) throw new Error("Failed to fetch user details");
+        const data = await res.json();
+        setUserEmail(data.email ?? "No email found");
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+        setUserEmail("Error fetching email");
       }
     };
-
-    fetchUserDetails();
-  }, [token]);
+    fetchUserEmail();
+  }, [userId, token]);
 
   const updateAnswer = (index, value) => {
     const key = `q${index + 1}`;
@@ -103,8 +117,8 @@ export default function AnswerFormPage() {
 
     const payload = {
       formId: Number(formId),
-      userId: userId,
-      userEmail: userEmail,
+      userId,
+      userEmail,
       answers,
       isAuthenticated: !!token,
     };
@@ -143,7 +157,6 @@ export default function AnswerFormPage() {
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div className="bg-white shadow-lg rounded-xl p-8 space-y-4">
         <h2 className="text-3xl font-bold text-gray-800">{form.title}</h2>
-        <p className="text-gray-600">{form.description}</p>
       </div>
 
       <div className="space-y-4">
@@ -163,7 +176,7 @@ export default function AnswerFormPage() {
       <div className="flex gap-3 mt-6 justify-end">
         <button
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || !userEmail}
           className="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-60"
         >
           {submitting ? "Submitting..." : "Submit Response"}

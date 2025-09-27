@@ -121,7 +121,7 @@ export default function Profile() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-animated-gradient p-6">
       <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-8 text-center">
         <img
           src={`https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}`}

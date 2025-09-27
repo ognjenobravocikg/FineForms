@@ -7,12 +7,12 @@ export default function About() {
     },
     {
       name: "Aleksandar Djokić",
-      role: "Backend Engineer",
+      role: "Backend Engineer/Joker",
       github: "caojasamalex",
     },
     {
       name: "Janko Jakovljević",
-      role: "Backend Engineer / Joker",
+      role: "Backend Engineer",
       github: "K3nza2",
     },
     {
@@ -53,7 +53,7 @@ export default function About() {
             <img
               src={`https://github.com/${member.github}.png`}
               alt={member.name}
-              className="w-24 h-24 mx-auto rounded-full mb-4 border-4 border-blue-600 object-cover"
+              className="w-24 h-24 mx-auto rounded-full mb-4 border-4 border-indigo-600 object-cover"
             />
 
             {/* Name + Role */}
@@ -69,7 +69,7 @@ export default function About() {
               href={`https://github.com/${member.github}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+              className="inline-block px-4 py-2 text-sm font-medium text-white bg-indigo-700 rounded-lg hover:bg-blue-700 transition"
             >
               GitHub
             </a>
@@ -90,7 +90,7 @@ export default function About() {
           href="https://github.com/ognjenobravocikg/FineForms"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-6 py-3 bg-gray-900 dark:bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          className="px-6 py-3 bg-gray-900 dark:bg-indigo-700 text-white rounded-lg shadow hover:bg-indigo-800 transition"
         >
           Visit Project Repo
         </a>

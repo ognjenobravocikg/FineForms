@@ -10,7 +10,7 @@ export default function FormHeader({
   setPublicForm,
 }) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow mb-6">
+    <div className="bg-white p-6 rounded-lg shadow mb-6 md:hover:bg-indigo-50">
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">
           Form Title

@@ -73,7 +73,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="w-full py-3 bg-animated-login text-white rounded-lg hover:bg-blue-700 transition"
           >
             Log In
           </button>
@@ -91,7 +91,7 @@ export default function Login() {
       </div>
 
       {/* Right half - splash */}
-      <div className="w-1/2 flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-600 text-white">
+      <div className="w-1/2 flex items-center justify-center bg-animated-login text-white">
         <h1 className="text-4xl font-bold text-center px-8">
           Welcome back to FineForms
         </h1>

@@ -123,7 +123,7 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            className="w-full py-3 bg-animated-register text-white rounded-lg hover:bg-green-700 transition"
           >
             Register
           </button>
@@ -141,7 +141,7 @@ export default function Register() {
       </div>
 
       {/* Right half - splash */}
-      <div className="w-1/2 flex items-center justify-center bg-gradient-to-br from-green-400 to-teal-600 text-white">
+      <div className="w-1/2 flex items-center justify-center bg-animated-register text-white">
         <h1 className="text-4xl font-bold text-center px-8">
           Start building smarter forms with FineForms
         </h1>

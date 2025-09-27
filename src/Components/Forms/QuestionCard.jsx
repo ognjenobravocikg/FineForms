@@ -42,7 +42,7 @@ export default function QuestionCard({
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-5 mb-5">
+    <div className="bg-white shadow-md rounded-lg p-5 mb-5 md:hover:bg-indigo-50">
       <div className="flex justify-between items-start">
         <button
           onClick={removeQuestion}

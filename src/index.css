@@ -1,1 +1,50 @@
 @import "tailwindcss";
+
+/* Custom gradient animation */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-animated-gradient {
+  background: linear-gradient(
+    270deg,
+    #4f46e5,
+    /* indigo-600 */ #4338ca,
+    /* indigo-700 */ #6366f1,
+    /* indigo-500 */ #312e81 /* indigo-900 */
+  );
+  background-size: 600% 600%;
+  animation: gradient 20s ease infinite; /* <-- change duration here */
+}
+
+.bg-animated-login {
+  background: linear-gradient(
+    270deg,
+    #cc41ff,
+    /* indigo-600 */ #ffb20a,
+    /* indigo-700 */ #d3d3d5,
+    /* indigo-500 */ #211f20 /* indigo-900 */
+  );
+  background-size: 600% 600%;
+  animation: gradient 10s ease infinite; /* <-- change duration here */
+}
+
+.bg-animated-register {
+  background: linear-gradient(
+    270deg,
+    #534293,
+    /* indigo-600 */ #cc41ff,
+    /* indigo-700 */ #05bbaa,
+    /* indigo-500 */ #eb5951 /* indigo-900 */
+  );
+  background-size: 600% 600%;
+  animation: gradient 10s ease infinite; /* <-- change duration here */
+}

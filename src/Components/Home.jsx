@@ -15,7 +15,7 @@ export default function Home() {
   const features = [
     {
       id: 1,
-      icon: <Edit3 className="w-12 h-12 text-blue-600 mb-4" />,
+      icon: <Edit3 className="w-12 h-12 text-indigo-600 mb-4" />,
       title: "Edit to Fit Your Needs",
       short:
         "Customize forms with fields, styles, and logic to match exactly what you need.",
@@ -24,7 +24,7 @@ export default function Home() {
     },
     {
       id: 2,
-      icon: <ChartBar className="w-12 h-12 text-blue-600 mb-4" />,
+      icon: <ChartBar className="w-12 h-12 text-indigo-600 mb-4" />,
       title: "Make Decisions with Data",
       short:
         "Collect responses in real time and gain insights with clean analytics.",
@@ -33,7 +33,7 @@ export default function Home() {
     },
     {
       id: 3,
-      icon: <Share2 className="w-12 h-12 text-blue-600 mb-4" />,
+      icon: <Share2 className="w-12 h-12 text-indigo-600 mb-4" />,
       title: "Share Anywhere",
       short:
         "Send links, embed in websites, or integrate with tools you already use.",
@@ -47,18 +47,18 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center text-center py-20 px-6 bg-white dark:bg-gray-900">
-        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+      <section className="flex flex-col items-center justify-center text-center py-20 px-6 bg-animated-gradient dark:bg-gray-900">
+        <h1 className="text-4xl md:text-6xl font-bold text-white dark:text-white mb-6">
           Create & Share Forms Easily
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl">
+        <p className="text-lg md:text-xl text-white mb-8 max-w-2xl">
           FineForms lets you design, customize, and share forms effortlessly —
           whether for surveys, feedback, or data collection.
         </p>
         <div className="flex space-x-4">
           <button
             onClick={handleGetStarted}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
           >
             Get Started
           </button>
