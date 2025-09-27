@@ -9,7 +9,8 @@ export default function AnswerCard({ question, value, onChange }) {
             type="text"
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
+            placeholder="Type your answer..."
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
           />
         );
 
@@ -19,7 +20,8 @@ export default function AnswerCard({ question, value, onChange }) {
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
             rows={4}
-            className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
+            placeholder="Type your answer..."
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
           />
         );
 
@@ -28,36 +30,45 @@ export default function AnswerCard({ question, value, onChange }) {
           <input
             type="number"
             value={value || ""}
-            onChange={(e) => onChange(Number(e.target.value))}
-            className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Enter a number"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
           />
         );
 
       case "RANGE":
       case "SCALE":
         return (
-          <div>
+          <div className="flex items-center gap-4">
             <input
               type="range"
-              value={value || question.numberMin || 0}
               min={question.numberMin ?? 0}
               max={question.numberMax ?? 10}
               step={question.numberStep ?? 1}
+              value={value ?? question.numberMin ?? 0}
               onChange={(e) => onChange(Number(e.target.value))}
-              className="w-full"
+              className="w-full accent-blue-500 hover:accent-blue-600 transition"
             />
-            <div className="text-right text-sm text-gray-500">
+            <span className="w-12 text-right font-medium text-gray-700">
               {value ?? question.numberMin ?? 0}
-            </div>
+            </span>
           </div>
         );
 
       case "SINGLE_CHOICE":
       case "RADIO":
         return (
-          <div className="space-y-1">
+          <div className="flex flex-col gap-2">
             {question.options?.map((opt, idx) => (
-              <label key={idx} className="flex items-center gap-2">
+              <label
+                key={idx}
+                className={`flex items-center gap-3 p-2 rounded-xl border cursor-pointer transition 
+                  ${
+                    value === opt.text
+                      ? "bg-blue-100 border-blue-400"
+                      : "border-gray-300 hover:bg-gray-100"
+                  }`}
+              >
                 <input
                   type="radio"
                   name={`question-${question.id}`}
@@ -66,7 +77,7 @@ export default function AnswerCard({ question, value, onChange }) {
                   onChange={() => onChange(opt.text)}
                   className="accent-blue-500"
                 />
-                <span>{opt.text}</span>
+                <span className="text-gray-800">{opt.text}</span>
               </label>
             ))}
           </div>
@@ -75,25 +86,31 @@ export default function AnswerCard({ question, value, onChange }) {
       case "MULTIPLE_CHOICE":
       case "CHECKBOX":
         return (
-          <div className="space-y-1">
+          <div className="flex flex-col gap-2">
             {question.options?.map((opt, idx) => (
-              <label key={idx} className="flex items-center gap-2">
+              <label
+                key={idx}
+                className={`flex items-center gap-3 p-2 rounded-xl border cursor-pointer transition
+                  ${
+                    Array.isArray(value) && value.includes(opt.text)
+                      ? "bg-blue-100 border-blue-400"
+                      : "border-gray-300 hover:bg-gray-100"
+                  }`}
+              >
                 <input
                   type="checkbox"
                   value={opt.text}
-                  checked={
-                    Array.isArray(value) ? value.includes(opt.text) : false
-                  }
+                  checked={Array.isArray(value) && value.includes(opt.text)}
                   onChange={(e) => {
                     const checked = e.target.checked;
-                    const arr = Array.isArray(value) ? [...value] : [];
-                    if (checked) arr.push(opt.text);
-                    else arr.splice(arr.indexOf(opt.text), 1);
-                    onChange(arr);
+                    let newVal = Array.isArray(value) ? [...value] : [];
+                    if (checked) newVal.push(opt.text);
+                    else newVal = newVal.filter((v) => v !== opt.text);
+                    onChange(newVal);
                   }}
                   className="accent-blue-500"
                 />
-                <span>{opt.text}</span>
+                <span className="text-gray-800">{opt.text}</span>
               </label>
             ))}
           </div>
@@ -109,8 +126,8 @@ export default function AnswerCard({ question, value, onChange }) {
   };
 
   return (
-    <div className="border rounded-xl p-5 shadow-sm bg-white hover:shadow-md transition">
-      <p className="font-semibold mb-3 text-gray-800">
+    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition space-y-2">
+      <p className="font-semibold text-gray-800">
         {question.text}{" "}
         {question.required && <span className="text-red-500">*</span>}
       </p>

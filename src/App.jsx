@@ -11,7 +11,8 @@ import Profile from "./Components/Profile/Profile.jsx";
 import FormsPage from "./Components/My-Forms/FormsPage.jsx";
 import AdminPage from "./Components/Admin/AdminPage.jsx";
 import FormEditPage from "./Components/Forms/FormEditPage.jsx";
-import AnswerFormPage from "./Components/Responses/AnswerFormPage.jsx"; // <- ADD THIS
+import AnswerFormPage from "./Components/Responses/AnswerFormPage.jsx";
+import ResponsesPage from "./Components/Responses/ResponsesPage.jsx";
 
 /* ------------------ Layouts ------------------ */
 
@@ -79,6 +80,7 @@ export default function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/form/:formId" element={<FormEditPage />} />
         <Route path="/form/:formId/answer" element={<AnswerFormPage />} />
+        <Route path="/responses/:formId" element={<ResponsesPage />} />
 
         {/* Auth layout pages */}
         <Route

@@ -35,7 +35,6 @@ export default function FormsPage() {
   const token = localStorage.getItem("token");
   const userId = parseUserFromStorage();
 
-  // Helper to fetch collaborators for each form
   const fetchFormCollaborators = async (formId) => {
     try {
       const res = await fetch(`${API_BASE}/form/${formId}/collab`, {
@@ -59,7 +58,6 @@ export default function FormsPage() {
     setError(null);
 
     try {
-      // 1️⃣ Fetch all forms (backend should ideally provide all forms visible to this user)
       const res = await fetch(`${API_BASE}/form`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -69,26 +67,40 @@ export default function FormsPage() {
       if (!res.ok) throw new Error(`Failed to fetch forms (${res.status})`);
       const allForms = await res.json();
 
-      // 2️⃣ Fetch collaborator info for each form
-      const formsWithRole = await Promise.all(
+      const formsWithDetails = await Promise.all(
         allForms.map(async (form) => {
           const collabs = await fetchFormCollaborators(form.id);
 
-          // Determine user's role in this form
           let userRole = "NONE";
-          if (String(form.ownerId) === String(userId)) {
-            userRole = "OWNER";
-          } else {
+          if (String(form.ownerId) === String(userId)) userRole = "OWNER";
+          else {
             const c = collabs.find((c) => String(c.userId) === String(userId));
             if (c) userRole = c.role; // EDITOR or VIEWER
           }
 
-          return { ...form, userRole, collaborators: collabs };
+          // Fetch answers count
+          let answersCount = 0;
+          try {
+            const currentUserId = parseUserFromStorage();
+            const resCount = await fetch(
+              `${API_BASE}/response/${form.id}?currentUserId=${currentUserId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            if (resCount.ok) {
+              const responses = await resCount.json();
+              answersCount = Array.isArray(responses) ? responses.length : 0;
+            }
+          } catch (err) {
+            console.warn("Failed to fetch responses count", err);
+          }
+
+          return { ...form, userRole, collaborators: collabs, answersCount };
         })
       );
 
-      // 3️⃣ Keep only forms where user is owner or collaborator
-      const visibleForms = formsWithRole.filter(
+      const visibleForms = formsWithDetails.filter(
         (f) =>
           f.userRole === "OWNER" ||
           f.userRole === "EDITOR" ||
@@ -105,7 +117,6 @@ export default function FormsPage() {
   }, [token, userId]);
 
   useEffect(() => {
-    // initial load: user details, all users, forms
     const load = async () => {
       if (!token) {
         setError("Not authenticated");
@@ -118,26 +129,22 @@ export default function FormsPage() {
       setError(null);
 
       try {
-        // 1) fetch user details
         if (userId) {
           const userRes = await fetch(`${API_BASE}/users/${userId}/details`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          if (userRes.ok) {
-            setUser(await userRes.json());
-          } else {
+          if (userRes.ok) setUser(await userRes.json());
+          else {
             const stored = localStorage.getItem("user");
             if (stored) setUser(JSON.parse(stored));
           }
         }
 
-        // 2) fetch all users (for collaborator search)
         const usersRes = await fetch(`${API_BASE}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAllUsers(usersRes.ok ? await usersRes.json() : []);
 
-        // 3) fetch forms
         await fetchForms();
       } catch (err) {
         console.error("initial load error:", err);
@@ -190,7 +197,6 @@ export default function FormsPage() {
       });
       if (!res.ok) throw new Error("Add collaborator failed");
 
-      // refresh collaborators & forms
       const collabs = await fetchFormCollaborators(selectedForm.id);
       setSelectedForm((s) => ({ ...s, collaborators: collabs }));
       await fetchForms();
@@ -229,9 +235,7 @@ export default function FormsPage() {
 
     try {
       const res = await fetch(`${API_BASE}/response/export?formId=${formId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) throw new Error(`Export failed (${res.status})`);
@@ -268,7 +272,6 @@ export default function FormsPage() {
 
         <hr className="my-6" />
 
-        {/* Forms list */}
         <div className="space-y-4">
           {forms.length > 0 ? (
             forms.map((form) => {
@@ -278,10 +281,14 @@ export default function FormsPage() {
                   key={form.id}
                   form={form}
                   onEdit={() => navigate(`/form/${form.id}`)}
+                  onViewButton={() => navigate(`/responses/${form.id}`)}
                   onCollaborators={() => openCollaboratorsModal(form)}
                   onDelete={() => handleDeleteForm(form.id)}
                   extraActions={
-                    <div className="flex gap-2 mt-2 flex-wrap">
+                    <div className="flex gap-2 mt-2 flex-wrap items-center">
+                      <span className="text-gray-500 text-sm">
+                        Answers: {form.answersCount ?? 0}
+                      </span>
                       <a
                         href={answerUrl}
                         target="_blank"
@@ -290,14 +297,12 @@ export default function FormsPage() {
                       >
                         Answer
                       </a>
-
                       <button
                         onClick={() => navigator.clipboard.writeText(answerUrl)}
                         className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm"
                       >
                         Copy Link
                       </button>
-
                       <button
                         onClick={() => handleExportCSV(form.id)}
                         className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"

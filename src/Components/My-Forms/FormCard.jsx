@@ -4,8 +4,9 @@ export default function FormCard({
   form,
   onEdit,
   onCollaborators,
+  onViewButton,
   onDelete,
-  extraActions, // new prop
+  extraActions,
 }) {
   return (
     <div className="bg-gray-50 border rounded-lg p-6 shadow-sm hover:shadow-md transition">
@@ -26,12 +27,12 @@ export default function FormCard({
           </button>
         )}
 
-        {onCollaborators && (
+        {onViewButton && (
           <button
-            onClick={onCollaborators}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100"
+            onClick={onViewButton}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
           >
-            Collaborators
+            View All Responses
           </button>
         )}
 
@@ -44,7 +45,6 @@ export default function FormCard({
           </button>
         )}
       </div>
-
       {extraActions && <div className="mt-3">{extraActions}</div>}
     </div>
   );

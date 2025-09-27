@@ -8,15 +8,16 @@ export default function AnswerFormPage() {
   const { formId } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
 
   const [form, setForm] = useState(null);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
 
+  // Fetch form on mount
   useEffect(() => {
     const fetchForm = async () => {
       setLoading(true);
@@ -28,7 +29,7 @@ export default function AnswerFormPage() {
         const data = await res.json();
         setForm(data);
 
-        // Initialize answers object with keys q1, q2, ...
+        // Initialize answers
         const initialAnswers = {};
         data.questions.forEach((q, idx) => {
           const key = `q${idx + 1}`;
@@ -49,11 +50,38 @@ export default function AnswerFormPage() {
     fetchForm();
   }, [formId, token]);
 
+  // Fetch user details on mount
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!token) return;
+
+      const storedUser = localStorage.getItem("user");
+      const userObj = storedUser ? JSON.parse(storedUser) : null;
+      const uid = userObj?.id ?? null;
+      setUserId(uid);
+
+      if (uid) {
+        try {
+          const res = await fetch(`${API_BASE}/users/${uid}/details/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error("Failed to fetch user details");
+          const data = await res.json();
+          setUserEmail(data.email ?? null);
+
+          console.log("Fetched userEmail:", data.email);
+        } catch (err) {
+          console.error("Error fetching user details:", err);
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [token]);
+
   const updateAnswer = (index, value) => {
-    setAnswers((prev) => {
-      const key = `q${index + 1}`;
-      return { ...prev, [key]: value };
-    });
+    const key = `q${index + 1}`;
+    setAnswers((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async () => {
@@ -75,9 +103,9 @@ export default function AnswerFormPage() {
 
     const payload = {
       formId: Number(formId),
-      userId: token && user ? user.id : null,
-      userEmail: token && user ? user.email : null,
-      answers: answers,
+      userId: userId,
+      userEmail: userEmail,
+      answers,
       isAuthenticated: !!token,
     };
 
@@ -141,7 +169,7 @@ export default function AnswerFormPage() {
           {submitting ? "Submitting..." : "Submit Response"}
         </button>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="px-6 py-2 border rounded-xl hover:bg-gray-100"
         >
           Cancel
