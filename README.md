@@ -1,6 +1,6 @@
 # App design diagram
 
-![Diagram](appdiagram.img)
+![Diagram](appdiagram.png)
 
 # React + Vite
 
