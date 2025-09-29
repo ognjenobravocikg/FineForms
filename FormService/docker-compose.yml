@@ -1,0 +1,15 @@
+services:
+  forms-db:
+    image: postgres:latest
+    container_name: forms-service-db
+    environment:
+        POSTGRES_DB: fineformsdb
+        POSTGRES_USER: ${FORMS_DB_USERNAME}
+        POSTGRES_PASSWORD: ${FORMS_DB_PASSWORD}
+    ports:
+        - "5432:5432"
+    volumes:
+        - forms-db-data:/var/lib/postgresql/data
+
+volumes:
+  forms-db-data:
