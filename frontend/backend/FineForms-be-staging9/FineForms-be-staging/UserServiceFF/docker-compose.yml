@@ -1,0 +1,26 @@
+services:
+
+  user-service:
+    build: .
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - user-db
+
+  user-db:
+    image: postgres:latest
+    container_name: user-service-postgres
+    environment:
+      POSTGRES_DB: fineformsdb
+      POSTGRES_USER: ${USER_DB_USERNAME}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+
+volumes:
+  user-db-data:

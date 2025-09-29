@@ -1,0 +1,19 @@
+services:
+  response-db:
+    image: postgres:latest
+    container_name: response-service-db
+    environment:
+      POSTGRES_DB: fineformsdb
+      POSTGRES_USER: ${RESPONSE_DB_USERNAME}
+      POSTGRES_PASSWORD: ${RESPONSE_DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - response-db-data:/var/lib/postgresql/data
+
+volumes:
+  response-db-data:
+
+networks:
+  response-network:
+    driver: bridge
